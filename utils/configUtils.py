@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -- coding: utf-8 --
 """
-Copyright (c) 2018. All rights reserved.
-Created by C. L. Wang on 2018/4/18
+Created by H. L. Wang on 2018/5/15
+
 """
+
 from __future__ import print_function
 from __future__ import absolute_import
 
@@ -41,6 +42,13 @@ def process_config(json_file):
 
     mkdir_if_not_exist([config.tb_dir, config.cp_dir, config.img_dir])  # 创建文件夹
     return config
+
+
+def save_config(config, run_dir):
+    path = os.path.join(run_dir, "config_{}.json".format(config['timestamp']))
+    with open(path, 'w') as config_file:
+        json.dump(config, config_file)
+        config_file.write('\n')
 
 
 def get_train_args():

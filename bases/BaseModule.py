@@ -1,9 +1,14 @@
-# coding:utf8
+#!/usr/bin/env python
+# -- coding: utf-8 --
+"""
+Created by H. L. Wang on 2018/5/15
+
+"""
+
 import torch as t
 from torch.nn import functional as F
 from torch.nn import Parameter
 import time
-import math
 
 
 class BaseModule(t.nn.Module):

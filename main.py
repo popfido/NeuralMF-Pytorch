@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -- coding: utf-8 --
 """
-Copyright (c) 2018. All rights reserved.
 Created by H. L. Wang on 2018/5/15
 
 """
+
 from __future__ import print_function
 from __future__ import absolute_import
 
@@ -37,8 +37,8 @@ def train(**kwargs):
     except Exception as e:
         print('[Exception] 配置无效, %s' % e)
         if parser:
-            parser.print_help()
-        print('[Exception] 参考: python main_train.py -c configs/simple_mnist_config.json')
+            help()
+        print('[Exception] 参考: python main.py -c configs/simple_mnist_config.json')
         exit(0)
 
     print('[INFO] 加载数据...')
@@ -82,13 +82,12 @@ def help():
         usage : python file.py <function> [--args=value]
         <function> := train | test | help
         example: 
-            python {0} train --env='env0701' --lr=0.01
-            python {0} test --dataset='path/to/dataset/root/'
+            python {0} train data -e='env0701' --lr=0.01
+            python {0} test data='path/to/dataset/root/'
             python {0} help
         avaiable args:
         '''.format(__file__))
-
-    print(NeuralMFConfig().print_help())
+    print(NeuralMFConfig().print_args())
 
 
 if __name__ == '__main__':

@@ -1,10 +1,17 @@
 #!/usr/bin/env python
 # -- coding: utf-8 --
+"""
+Created by H. L. Wang on 2018/5/15
 
-from argparse import ArgumentParser
+"""
+
+from argparse import ArgumentParser, HelpFormatter
+import os as _os
+import sys as _sys
 import datetime
 
 from bases.BaseConfig import BaseConfig
+from utils.configUtils import save_config
 from utils.utils import mkdir_if_not_exist
 
 
@@ -37,13 +44,30 @@ class NeuralMFConfig(BaseConfig):
                             help='stop training early at threshold')
         self.parser = parser
         self.args = None
+        self.prog = _os.path.basename(_sys.argv[0])
+        self.formatter_class = HelpFormatter
 
     def parse_args(self, args=None):
         self.args = self.parser.parse_args(args)
         return self.args
 
-    def print_help(self):
-        return self.parser.print_help()
+    def print_args(self):
+        formatter = self._get_formatter()
+        # positionals, optionals and user-defined groups
+        for action_group in self.parser._action_groups:
+            formatter.start_section(action_group.title)
+            formatter.add_text(action_group.description)
+            formatter.add_arguments(action_group._group_actions)
+            formatter.end_section()
+
+        # epilog
+        formatter.add_text(self.parser.epilog)
+        args_list = formatter.format_help().split('\n')
+        args_list.pop(4)
+        return "\n".join(["        " + arg for arg in args_list])
+
+    def _get_formatter(self):
+        return self.formatter_class(prog=self.prog)
 
     def save(self):
         if self.args is None:
@@ -54,4 +78,4 @@ class NeuralMFConfig(BaseConfig):
         run_dir = "./run/neumf/{}".format(config['timestamp'])
         print("Saving config and results to {}".format(run_dir))
         mkdir_if_not_exist(run_dir)
-        utils.save_config(config, run_dir)
+        save_config(config, run_dir)

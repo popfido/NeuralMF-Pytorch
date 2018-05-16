@@ -1,8 +1,10 @@
+#!/usr/bin/env python
 # -- coding: utf-8 --
 """
-Copyright (c) 2018. All rights reserved.
-Created by C. L. Wang on 2018/4/18
+Created by H. L. Wang on 2018/5/15
+
 """
+
 from torchvision.datasets import MNIST
 from torchvision import transforms
 from torch.utils.data import DataLoader

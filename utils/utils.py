@@ -1,17 +1,18 @@
 #!/usr/bin/env python
-#  -- coding: utf-8 --
+# -- coding: utf-8 --
 """
-Copyright (c) 2018. All rights reserved.
-Created by C. L. Wang on 2018/4/18
+Created by H. L. Wang on 2018/5/15
+
 """
+
 from __future__ import print_function
 from __future__ import absolute_import
+
 import os
 import shutil
 import datetime
 import warnings
-import torch.nn.functional as F
-import torch.optim as optim
+import json
 
 try:
     from inspect import signature
