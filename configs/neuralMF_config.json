@@ -1,0 +1,12 @@
+{
+  "exp_name": "Neural Matrix Factorization",
+  "data":,
+  "factors":,
+  "layers": ,
+  "embed_size": 200,
+  "vocab_size": 3000,
+  "hidden_units": 300,
+  "num_epochs": 100,
+  "classes": 2,
+  "use_gpu": 0
+}

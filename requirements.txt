@@ -1,0 +1,11 @@
+torch
+bunch
+h5py
+pydot
+numpy
+scikit-learn
+torchvision
+torchsummary
+tensorboardX
+torchsample==0.2.0
+fire
