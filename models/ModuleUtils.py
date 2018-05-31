@@ -286,26 +286,6 @@ def BCE_with_logits_loss(input, target, weight=None, size_average=True, reduce=T
                                                   reduce=reduce)
 
 
-def predict(model, users, items, batch_size=1024, use_cuda=True):
-    batches = [(users[i:i + batch_size], items[i:i + batch_size])
-               for i in range(0, len(users), batch_size)]
-    model.eval()
-    if use_cuda:
-        model.cuda()
-    preds = []
-    for user, item in batches:
-        def proc(x):
-            x = np.array(x)
-            x = th.from_numpy(x)
-            if use_cuda:
-                x = x.cuda(async=True)
-            return th.autograd.Variable(x)
-        outp = model(proc(user), proc(item), sigmoid=True)
-        outp = outp.data.cpu().numpy()
-        preds += list(outp.flatten())
-    return preds
-
-
 def _calculate_hit(ranked, gt_item):
     return int(gt_item in ranked)
 
@@ -316,12 +296,14 @@ def _calculate_ndcg(ranked, gt_item):
             return np.log(2) / np.log(i + 2)
     return 0.
 
+
 def _add_regularizer_to_loss_fn(loss_fn,
                                 regularizer_container):
     def new_loss_fn(output_batch, target_batch):
         return loss_fn(output_batch, target_batch) + regularizer_container.get_value()
 
     return new_loss_fn
+
 
 def _parse_num_inputs_and_targets_from_loader(loader):
     """ NOT IMPLEMENTED """
@@ -332,33 +314,6 @@ def _parse_num_inputs_and_targets_from_loader(loader):
         num_inputs = loader.dataset.num_inputs
         num_targets = loader.dataset.num_targets
     return num_inputs, num_targets
-
-
-def eval_one(rating, items, model, K, use_cuda=True):
-    u = rating[0]
-    gt_item = rating[1]
-    items.append(gt_item)
-    users = np.full(len(items), u, dtype=np.int64)
-    predictions = predict(model, users, items, use_cuda=use_cuda)
-    map_item_score = {item: pred for item, pred in zip(items, predictions)}
-
-    ranked = heapq.nlargest(K, map_item_score, key=map_item_score.get)
-    hit = _calculate_hit(ranked, gt_item)
-    ndcg = _calculate_ndcg(ranked, gt_item)
-    return hit, ndcg
-
-
-def val_epoch(model, ratings, negs, K, use_cuda=True):
-    hits, ndcgs = [], []
-    for rating, items in zip(ratings, negs):
-        hit, ndcg = eval_one(rating, items, model, K, use_cuda=use_cuda)
-        hits.append(hit)
-        ndcgs.append(ndcg)
-
-    hits = np.array(hits, dtype=np.float32)
-    ndcgs = np.array(ndcgs, dtype=np.float32)
-
-    return np.mean(hits), np.mean(ndcgs)
 
 
 class HitAccuracy(Metric):
