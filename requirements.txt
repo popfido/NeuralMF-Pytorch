@@ -8,4 +8,3 @@ torchvision
 torchsummary
 tensorboardX
 torchsample==0.2.0
-fire

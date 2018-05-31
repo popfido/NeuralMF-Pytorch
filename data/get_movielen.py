@@ -11,10 +11,12 @@ from collections import namedtuple, defaultdict
 from argparse import ArgumentParser
 import pandas as pd
 import numpy as np
+import zipfile
 
 _raw_folder = 'raw'
 _processed_folder = 'processed'
 _file_list = ['train-ratings.csv', 'test-ratings.csv', 'test-negative.csv']
+_raw_file_list = ['movies.dat', 'ratings.dat', 'users.dat']
 _TRAIN_RATINGS_FILENAME = 'train-ratings.csv'
 _TEST_RATINGS_FILENAME = 'test-ratings.csv'
 _TEST_NEG_FILENAME = 'test-negative.csv'
@@ -56,7 +58,7 @@ def download(root):
         else 'http://files.grouplens.org/datasets/movielens/ml-1m.zip'
 
     if _check_exists(root, _processed_folder, _file_list):
-        return
+        return url.rpartition('/')[2]
 
     # download files
     try:
@@ -74,9 +76,8 @@ def download(root):
     file_path = os.path.join(root, _raw_folder, filename)
     with open(file_path, 'wb') as f:
         f.write(data.read())
-    with open(file_path.replace('.gz', ''), 'wb') as out_f, \
-            gzip.GzipFile(file_path) as zip_f:
-        out_f.write(zip_f.read())
+    with zipfile.ZipFile(file_path, "r") as zip_ref:
+        zip_ref.extractall(os.path.join(root, _raw_folder))
     os.unlink(file_path)
     return filename
 
@@ -97,7 +98,7 @@ def load_ml_100k(filename, sort=True):
 
 def load_ml_1m(filename, sort=True):
     names = ['user_id', 'item_id', 'rating', 'timestamp']
-    ratings = pd.read_csv(filename, sep='::', names=names, engine='python')
+    ratings = pd.read_csv(filename+".dat", sep='::', names=names, engine='python')
     return process_movielens(ratings, sort=sort)
 
 
@@ -108,7 +109,7 @@ def load_ml_10m(filename, sort=True):
 
 
 def load_ml_20m(filename, sort=True):
-    ratings = pd.read_csv(filename)
+    ratings = pd.read_csv(filename+".csv")
     ratings['timestamp'] = pd.to_datetime(ratings['timestamp'], unit='s')
     names = {'userId': 'user_id', 'movieId': 'item_id'}
     ratings.rename(columns=names, inplace=True)
@@ -133,10 +134,9 @@ def implicit_load(filename, sort=True):
 if __name__ == "__main__":
     args = parse_args()
     np.random.seed(args.seed)
-    fn = download(args.root)
-    fp = os.path.join(args.root, _raw_folder, fn)
-
-    if not _check_exists(args.root, _raw_folder, fn):
+    fn = download(args.root).replace(".zip","")
+    fp = os.path.join(args.root, _raw_folder, fn, 'ratings')
+    if not _check_exists(args.root, os.path.join(_raw_folder, fn), _raw_file_list):
         raise RuntimeError('Dataset not found. It may caused by download error.' +
                            ' You shall checkout you web status to download it')
 

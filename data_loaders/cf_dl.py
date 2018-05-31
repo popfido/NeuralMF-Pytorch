@@ -6,12 +6,16 @@ Created by H. L. Wang on 2018/5/15
 """
 
 import numpy as np
+import os
 import scipy
 import scipy.sparse
 from torch.utils.data import DataLoader
+import torch as th
 import torch.utils.data
 
 from bases.BaseDataLoader import BaseDataLoader
+from data.get_movielen import (_TEST_NEG_FILENAME, _TEST_RATINGS_FILENAME,
+                     _TRAIN_RATINGS_FILENAME)
 
 
 class CFDataLoader(BaseDataLoader):
@@ -19,20 +23,25 @@ class CFDataLoader(BaseDataLoader):
         super(CFDataLoader, self).__init__(config)
         self.train_data = None
         if not only_test:
-            self.train_data = CFDataset(config.data, config.negative_samples)
-        self.test_data = zip(_load_test_ratings(), _load_test_negs())
+            self.train_data = CFDataset(os.path.join(config.data, _TRAIN_RATINGS_FILENAME), config.negative_samples)
+        self.test_data = CFValidDataSet(os.path.join(config.data, _TEST_RATINGS_FILENAME),
+                                        os.path.join(config.data, _TEST_NEG_FILENAME))
 
     def get_train_data(self):
         if not self.train_data:
             raise ValueError("Training Dataset Not Set")
         return DataLoader(self.train_data, batch_size=self.config.batch_size, shuffle=True,
-                          num_workers=8, pin_memory=True)
+                          num_workers=8, pin_memory=False, )
 
     def get_test_data(self):
         if not self.train_data:
             raise ValueError("Test Dataset Not Set")
-        return DataLoader(self.test_data,  batch_size=self.config.batch_size, shuffle=True,
-                          num_workers=8, pin_memory=True)
+        return self.test_data
+
+    def get_num_user_and_item(self):
+        if not self.train_data:
+            raise ValueError("Training Dataset Not Set")
+        return self.train_data.nb_users, self.train_data.nb_items
 
 
 class CFDataset(torch.utils.data.dataset.Dataset):
@@ -73,6 +82,20 @@ class CFDataset(torch.utils.data.dataset.Dataset):
             while (u, j) in self.mat:
                 j = np.random.randint(self.nb_items)
             return u, j, np.zeros(1, dtype=np.float32)
+
+
+class CFValidDataSet(torch.utils.data.dataset.Dataset):
+    def __init__(self, fname_ratings, fname_negs):
+        self.data = [(rating, negs) for rating, negs in
+                     zip(_load_test_ratings(fname_ratings), _load_test_negs(fname_negs))]
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return (np.full(len(self.data[idx][1]) + 1, self.data[idx][0][0], dtype=np.int64),\
+                self.data[idx][1] + [self.data[idx][0][1]]), \
+                self.data[idx][0][1]
 
 
 def _load_test_ratings(fname):

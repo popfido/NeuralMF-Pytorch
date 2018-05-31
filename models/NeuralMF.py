@@ -10,21 +10,22 @@ import torch
 from bases.BaseModule import BaseModule
 import torch.nn as nn
 
+
 class NeuMF(BaseModule):
-    def __init__(self, config):
+    def __init__(self, config, nb_users, nb_items):
         super(NeuMF, self).__init__(config)
-        nb_mlp_layers = len(config.mlp_layer_sizes)
+        nb_mlp_layers = len(config.layers)
         # TODO: regularization?
-        self.mf_user_embed = nn.Embedding(config.nb_users, config.mf_dim)
-        self.mf_item_embed = nn.Embedding(config.nb_items, config.mf_dim)
-        self.mlp_user_embed = nn.Embedding(config.nb_users, config.mlp_layer_sizes[0] // 2)
-        self.mlp_item_embed = nn.Embedding(config.nb_items, config.mlp_layer_sizes[0] // 2)
+        self.mf_user_embed = nn.Embedding(nb_users, config.factors)
+        self.mf_item_embed = nn.Embedding(nb_items, config.factors)
+        self.mlp_user_embed = nn.Embedding(nb_users, config.layers[0] // 2)
+        self.mlp_item_embed = nn.Embedding(nb_items, config.layers[0] // 2)
 
         self.mlp = nn.ModuleList()
         for i in range(1, nb_mlp_layers):
-            self.mlp.extend([nn.Linear(config.mlp_layer_sizes[i - 1], config.mlp_layer_sizes[i])])  # noqa: E501
+            self.mlp.extend([nn.Linear(config.layers[i - 1], config.layers[i])])  # noqa: E501
 
-        self.final = nn.Linear(config.mlp_layer_sizes[-1] + config.mf_dim, 1)
+        self.fc_final = nn.Linear(config.layers[-1] + config.factors, 1)
 
         self.mf_user_embed.weight.data.normal_(0., 0.01)
         self.mf_item_embed.weight.data.normal_(0., 0.01)
@@ -45,22 +46,22 @@ class NeuMF(BaseModule):
             if type(layer) != nn.Linear:
                 continue
             golorot_uniform(layer)
-        lecunn_uniform(self.final)
+        lecunn_uniform(self.fc_final)
 
-    def forward(self, *input_data):
-        xmfu = self.mf_user_embed(input_data[0])
-        xmfi = self.mf_item_embed(input_data[1])
+    def forward(self, user, item, sigmoid=False):
+        xmfu = self.mf_user_embed(user)
+        xmfi = self.mf_item_embed(item)
         xmf = xmfu * xmfi
 
-        xmlpu = self.mlp_user_embed(input_data[0])
-        xmlpi = self.mlp_item_embed(input_data[1])
+        xmlpu = self.mlp_user_embed(user)
+        xmlpi = self.mlp_item_embed(item)
         xmlp = torch.cat((xmlpu, xmlpi), dim=1)
         for i, layer in enumerate(self.mlp):
             xmlp = layer(xmlp)
             xmlp = nn.functional.relu(xmlp)
 
         x = torch.cat((xmf, xmlp), dim=1)
-        x = self.final(x)
-        if input_data[2]:
+        x = self.fc_final(x)
+        if sigmoid:
             x = nn.functional.sigmoid(x)
         return x
