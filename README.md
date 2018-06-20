@@ -6,6 +6,9 @@ Template.
 It is inspired by [Meitu DL-Project-Template](https://github.com/SpikeKing/DL-Project-Template) 
 but using ``pytorch`` instead of ``tensorflow`` for pytorch researchers/developers.
 
+It also used a personalized version of ``torchsample`` which contains series of Keras API for ``pytorch``.
+You can find it in my personal directory: [Torchsample](https://github.com/popfido/torchsample).
+
 By H. L. Wang 
 
 ## Usage
