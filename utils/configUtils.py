@@ -19,7 +19,7 @@ from utils.utils import mkdir_if_not_exist
 
 def get_config_from_json(json_file):
     """
-    将配置文件转换为配置类
+    Parse Config File to config class
     """
     with open(json_file, 'r') as config_file:
         config_dict = json.load(config_file)  # 配置字典
@@ -31,9 +31,9 @@ def get_config_from_json(json_file):
 
 def process_config(json_file):
     """
-    解析Json文件
-    :param json_file: 配置文件
-    :return: 配置类
+    Parse Json file
+    :param json_file: Json config file
+    :return: config
     """
     config, _ = get_config_from_json(json_file)
     config.tb_dir = os.path.join("experiments", config.exp_name, "logs/")  # 日志
@@ -53,7 +53,7 @@ def save_config(config, run_dir):
 
 def get_train_args():
     """
-    添加训练参数
+    Train Parameter Getter
     """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -68,7 +68,7 @@ def get_train_args():
 
 def get_test_args():
     """
-    添加测试路径
+    Test parameter Getter
     :return: 参数
     """
     parser = argparse.ArgumentParser(description=__doc__)

@@ -8,20 +8,20 @@ Created by H. L. Wang on 2018/5/15
 
 class BaseDataLoader(object):
     """
-    数据加载的基类
+    Data Loader Base Class
     """
 
     def __init__(self, config):
-        self.config = config  # 设置配置信息
+        self.config = config  # Set config
 
     def get_train_data(self):
         """
-        获取训练数据
+        Get training Data
         """
         raise NotImplementedError
 
     def get_test_data(self):
         """
-        获取测试数据
+        Get Test Data
         """
         raise NotImplementedError

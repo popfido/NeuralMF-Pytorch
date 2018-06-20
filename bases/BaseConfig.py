@@ -18,7 +18,8 @@ from utils.configUtils import process_config
 class BaseConfig(object):
     def parse_by_kwargs(self, kwargs):
         """
-        根据字典kwargs 更新 config参数
+        update config parameter according to kwargs
+        :kwargs: dictionary of updating parameters
         """
         for k, v in kwargs.items():
             if not hasattr(self, k):

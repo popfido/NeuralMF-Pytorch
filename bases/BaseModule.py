@@ -31,7 +31,7 @@ class BaseModule(t.nn.Module):
 
     def load(self, path):
         """
-        可加载指定路径的模型
+        Load Saved Model
         """
         self.load_state_dict(t.load(path))
 

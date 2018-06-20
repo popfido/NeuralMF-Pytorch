@@ -104,6 +104,7 @@ class MultiInputSingleTargetHelper(BaseHelper):
     def get_partial_loss_fn(self, loss_fn):
         return functools.partial(self.calculate_loss, loss_fn=loss_fn)
 
+
 class RankingModulelTrainer(ModuleTrainer):
 
     def __init__(self, model):

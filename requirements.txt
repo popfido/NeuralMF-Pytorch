@@ -3,6 +3,7 @@ bunch
 h5py
 pydot
 numpy
+pandas
 scikit-learn
 torchvision
 torchsummary
