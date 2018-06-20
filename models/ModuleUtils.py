@@ -31,6 +31,7 @@ class Flatten(th.nn.Module):
     def forward(self, x):
         return x.view(x.size(0), -1)
 
+
 class TwoInputSingleTargetHelper(BaseHelper):
 
     def move_to_cuda(self, cuda_device, user, item, targets):
