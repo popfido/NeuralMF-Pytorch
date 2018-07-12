@@ -1,5 +1,6 @@
 torch
 bunch
+tqdm
 h5py
 pydot
 numpy

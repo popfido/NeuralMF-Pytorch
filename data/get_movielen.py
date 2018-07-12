@@ -46,7 +46,7 @@ def describe_ratings(ratings):
                       max_date=ratings['timestamp'].max())
     print("{ratings} ratings on {items} items from {users} users"
           " from {min_date} to {max_date}"
-          .format(**(info._asdict())))
+            .format(**(info._asdict())))
     return info
 
 
@@ -57,7 +57,6 @@ def _check_exists(root, processed_folder, file_list):
 def download(root):
     """Download the movielen data if it doesn't exist in processed_folder already."""
     from six.moves import urllib
-    import gzip
 
     url = 'http://files.grouplens.org/datasets/movielens/ml-20m.zip' if len(sys.argv) > 3 and sys.argv[2] == '20m' \
         else 'http://files.grouplens.org/datasets/movielens/ml-1m.zip'
