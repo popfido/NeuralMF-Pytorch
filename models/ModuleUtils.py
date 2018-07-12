@@ -12,7 +12,7 @@ from torchsample.modules import ModuleTrainer
 from torchsample.callbacks import TQDM, CallbackContainer
 from torchsample.regularizers import RegularizerCallback
 from torchsample.constraints import ConstraintCallback
-from torchsample.modules.Helper import MultiInputNoTargetHelper, BaseHelper
+from torchsample.modules.Helper import BaseHelper
 import numpy as np
 import functools
 import math
