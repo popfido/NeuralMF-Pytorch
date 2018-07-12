@@ -12,6 +12,7 @@ from argparse import ArgumentParser
 import pandas as pd
 import numpy as np
 import zipfile
+from tqdm import tqdm
 
 _raw_folder = 'raw'
 _processed_folder = 'processed'
@@ -20,6 +21,7 @@ _raw_file_list = ['movies.dat', 'ratings.dat', 'users.dat']
 _TRAIN_RATINGS_FILENAME = 'train-ratings.csv'
 _TEST_RATINGS_FILENAME = 'test-ratings.csv'
 _TEST_NEG_FILENAME = 'test-negative.csv'
+MIN_RATINGS = 20
 
 RatingData = namedtuple('RatingData',
                         ['items', 'users', 'ratings', 'min_date', 'max_date'])
@@ -27,9 +29,12 @@ RatingData = namedtuple('RatingData',
 
 def parse_args():
     parser = ArgumentParser()
-    parser.add_argument('-r', '--root', type=str, default=os.path.join(os.getcwd(), 'data'))
-    parser.add_argument('-n', '--num_neg', type=int, default=100)
-    parser.add_argument('-s', '--seed', type=int, default=0)
+    parser.add_argument('-r', '--root', type=str, default=os.path.join(os.getcwd(), 'data'),
+                        help='Output directory for train and test CSV files')
+    parser.add_argument('-n', '--num_neg', type=int, default=999,
+                        help='Number of negative samples for each positive test example')
+    parser.add_argument('-s', '--seed', type=int, default=0,
+                        help='Random seed to reproduce same negative samples')
     return parser.parse_args()
 
 
@@ -131,10 +136,7 @@ def implicit_load(filename, sort=True):
     return func(filename, sort=sort)
 
 
-if __name__ == "__main__":
-    args = parse_args()
-    np.random.seed(args.seed)
-    fn = download(args.root).replace(".zip","")
+def convert(fn):
     fp = os.path.join(args.root, _raw_folder, fn, 'ratings')
     if not _check_exists(args.root, os.path.join(_raw_folder, fn), _raw_file_list):
         raise RuntimeError('Dataset not found. It may caused by download error.' +
@@ -145,7 +147,7 @@ if __name__ == "__main__":
 
     df = implicit_load(fp, sort=False)
     grouped = df.groupby(USER_COLUMN)
-    df = grouped.filter(lambda x: len(x) >= 20)
+    df = grouped.filter(lambda x: len(x) >= MIN_RATINGS)
 
     original_users = df[USER_COLUMN].unique()
     original_items = df[ITEM_COLUMN].unique()
@@ -163,13 +165,17 @@ if __name__ == "__main__":
     df.sort_values(by='timestamp', inplace=True)
     all_ratings = set(zip(df[USER_COLUMN], df[ITEM_COLUMN]))
     user_to_items = defaultdict(list)
-    for row in df.itertuples():
+    for row in tqdm(df.itertuples(), desc='Ratings', total=len(df)):
         user_to_items[getattr(row, USER_COLUMN)].append(getattr(row, ITEM_COLUMN))  # noqa: E501
+    try:
+        print(f"Generating {args.num_neg} negative samples for each user")
+    except:
+        print("Generating {} negative samples for each user".format(args.negatives))
 
     test_ratings = []
     test_negs = []
     all_items = set(range(len(original_items)))
-    for user in range(len(original_users)):
+    for user in tqdm(range(len(original_users)), desc='Users', total=len(original_users)):
         test_item = user_to_items[user].pop()
 
         all_ratings.remove((user, test_item))
@@ -179,6 +185,10 @@ if __name__ == "__main__":
         test_ratings.append((user, test_item))
         test_negs.append(list(np.random.choice(all_negs, args.num_neg)))
 
+    return all_ratings, test_ratings, test_negs
+
+
+def save(all_ratings, test_ratings, test_negs):
     # serialize
     df_train_ratings = pd.DataFrame(list(all_ratings))
     df_train_ratings['fake_rating'] = 1
@@ -194,3 +204,10 @@ if __name__ == "__main__":
     df_test_negs.to_csv(os.path.join(args.root, _processed_folder, _TEST_NEG_FILENAME),
                         index=False, header=False, sep='\t')
 
+
+if __name__ == "__main__":
+    args = parse_args()
+    np.random.seed(args.seed)
+    fn = download(args.root).replace(".zip","")
+    all_ratings, test_ratings, test_negs = convert(fn)
+    save(all_ratings, test_ratings, test_negs)
