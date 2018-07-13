@@ -7,6 +7,5 @@ numpy
 pandas
 scikit-learn
 torchvision
-torchsummary
 tensorboardX
 torchsample==0.2.0
