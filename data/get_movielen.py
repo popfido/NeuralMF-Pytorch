@@ -143,6 +143,7 @@ def convert(fn):
 
     USER_COLUMN = 'user_id'
     ITEM_COLUMN = 'item_id'
+    RATE_COLUMN = 'rating'
 
     df = implicit_load(fp, sort=False)
     grouped = df.groupby(USER_COLUMN)
@@ -207,6 +208,6 @@ def save(all_ratings, test_ratings, test_negs):
 if __name__ == "__main__":
     args = parse_args()
     np.random.seed(args.seed)
-    fn = download(args.root).replace(".zip","")
+    fn = download(args.root).replace(".zip", "")
     all_ratings, test_ratings, test_negs = convert(fn)
     save(all_ratings, test_ratings, test_negs)

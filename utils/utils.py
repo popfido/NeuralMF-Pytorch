@@ -18,7 +18,7 @@ try:
     from inspect import signature
 except:
     warnings.warn('inspect.signature not available... '
-        'you should upgrade to Python 3.x')
+                  'you should upgrade to Python 3.x')
 
 
 def _get_current_time():

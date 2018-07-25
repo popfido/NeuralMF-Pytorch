@@ -56,7 +56,6 @@ class CFDataset(torch.utils.data.dataset.Dataset):
             return [int(tmp[0]), int(tmp[1]), float(tmp[2]) > 0]
 
         # these files are a few hundred megs tops
-        # TODO: be unlazy? use pandas?
         with open(train_fname, 'r') as file:
             data = list(map(process_line, file))
         self.nb_users = max(data, key=lambda x: x[0])[0] + 1
@@ -109,7 +108,7 @@ def _load_test_ratings(fname):
 
 def _load_test_negs(fname):
     def process_line(line):
-        tmp = map(int, line.split('\t')[1:])
+        tmp = map(int, line.split('\t'))
         return list(tmp)
 
     negs = map(process_line, open(fname, 'r'))
