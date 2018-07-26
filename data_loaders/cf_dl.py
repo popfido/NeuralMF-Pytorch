@@ -10,12 +10,11 @@ import os
 import scipy
 import scipy.sparse
 from torch.utils.data import DataLoader
-import torch as th
 import torch.utils.data
 
 from bases.BaseDataLoader import BaseDataLoader
 from data.get_movielen import (_TEST_NEG_FILENAME, _TEST_RATINGS_FILENAME,
-                     _TRAIN_RATINGS_FILENAME)
+                               _TRAIN_RATINGS_FILENAME)
 
 
 class CFDataLoader(BaseDataLoader):
@@ -84,17 +83,18 @@ class CFDataset(torch.utils.data.dataset.Dataset):
 
 
 class CFValidDataSet(torch.utils.data.dataset.Dataset):
+    # Container of (rating, items)
     def __init__(self, fname_ratings, fname_negs):
-        self.data = [(rating, negs) for rating, negs in
+        self.data = [(rating, items) for rating, items in
                      zip(_load_test_ratings(fname_ratings), _load_test_negs(fname_negs))]
 
     def __len__(self):
         return len(self.data)
 
+    # Return ( [user] * len(items + 1), items + [test_item] ), test_item
     def __getitem__(self, idx):
-        return (np.full(len(self.data[idx][1]) + 1, self.data[idx][0][0], dtype=np.int64),\
-                self.data[idx][1] + [self.data[idx][0][1]]), \
-                self.data[idx][0][1]
+        return ([self.data[idx][0][0]] * (len(self.data[idx][1]) + 1), self.data[idx][1] + [self.data[idx][0][1]]), \
+               self.data[idx][0][1]
 
 
 def _load_test_ratings(fname):

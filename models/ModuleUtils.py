@@ -67,6 +67,7 @@ class TwoInputSingleTargetHelper(BaseHelper):
     def get_partial_loss_fn(self, loss_fn):
         return functools.partial(self.calculate_loss, loss_fn=loss_fn)
 
+
 class MultiInputSingleTargetHelper(BaseHelper):
 
     def move_to_cuda(self, cuda_device, input_batch, targets):
@@ -92,11 +93,11 @@ class MultiInputSingleTargetHelper(BaseHelper):
         target_batch = tforms[1](target_batch)
         return input_batch, target_batch
 
-    def forward_pass(self, user, item, model):
-        return model(user, item)
+    def forward_pass(self, user, item, model, sigmoid):
+        return model(user, item, sigmoid=sigmoid)
 
     def get_partial_forward_fn(self, model):
-        return functools.partial(self.forward_pass, model=model)
+        return functools.partial(self.forward_pass, model=model, sigmoid=True)
 
     def calculate_loss(self, output_batch, target_batch, loss_fn):
         return loss_fn(output_batch, target_batch)
@@ -231,7 +232,7 @@ class RankingModulelTrainer(ModuleTrainer):
                         verbose=1):
         self.model.eval()
         # num_inputs, num_targets = _parse_num_in(data)
-        batch_size = 1
+        batch_size = 8
         len_inputs = len(data)
         num_batches = int(math.ceil(len_inputs / batch_size))
 
@@ -248,20 +249,22 @@ class RankingModulelTrainer(ModuleTrainer):
         batches_seen = 0
         with th.no_grad():
             for i in range(len_inputs):
+                # Eval One input
+                # ( [user] * len(items + 1), items + [test_item] ), test_item
                 input_batch, target_batch = data[i]
                 preds = []
                 # loss_avg = []
                 batches = [(th.tensor(input_batch[0][i:i + batch_size]),
                             th.tensor(input_batch[1][i:i + batch_size]))
-                           for i in range(0, len(input_batch), batch_size)]
-                for batch in batches:
+                           for i in range(0, len(input_batch[0]), batch_size)]
+                for user, item in batches:
                     if cuda_device >= 0:
-                        batch = evaluate_helper.move_to_cuda(cuda_device, input_batch, target_batch)
+                        user, item = evaluate_helper.move_to_cuda(cuda_device, input_batch, target_batch)
 
-                    output_batch = eval_forward_fn(batch[0], batch[1]).data.cpu().numpy()
+                    output_batch = eval_forward_fn(user, item).data.cpu().numpy()
 
                     # loss_avg.append(eval_loss_fn(output_batch, target_batch).item())
-                    preds += list(output_batch.flatten())
+                    preds = preds + list(output_batch.flatten())
                 map_item_score = {item: pred for item, pred in zip(input_batch[1], preds)}
 
                 batches_seen += 1
@@ -288,13 +291,13 @@ def BCE_with_logits_loss(input, target, weight=None, size_average=True, reduce=T
                                                   reduce=reduce)
 
 
-def _calculate_hit(ranked, gt_item):
-    return int(gt_item in ranked)
+def _calculate_hit(ranked, test_item):
+    return int(test_item in ranked)
 
 
-def _calculate_ndcg(ranked, gt_item):
+def _calculate_ndcg(ranked, test_item):
     for i, item in enumerate(ranked):
-        if item == gt_item:
+        if item == test_item:
             return np.log(2) / np.log(i + 2)
     return 0.
 
@@ -365,7 +368,7 @@ class HitAndNDCGAccuracy(Metric):
         self.total_count = 0.
         self.top_k = top_k
 
-        self._name = 'hit_metric'
+        self._name = 'hit_ndcg_metric'
 
     def reset(self):
         self.hit_count = 0.
