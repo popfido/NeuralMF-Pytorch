@@ -32,6 +32,18 @@ class Flatten(th.nn.Module):
         return x.view(x.size(0), -1)
 
 
+def golorot_uniform(layer):
+    fan_in, fan_out = layer.in_features, layer.out_features
+    limit = np.sqrt(6. / (fan_in + fan_out))
+    layer.weight.data.uniform_(-limit, limit)
+
+
+def lecunn_uniform(layer):
+    fan_in, fan_out = layer.in_features, layer.out_features
+    limit = np.sqrt(3. / fan_in)
+    layer.weight.data.uniform_(-limit, limit)
+
+
 class TwoInputSingleTargetHelper(BaseHelper):
 
     def move_to_cuda(self, cuda_device, user, item, targets):
@@ -232,7 +244,7 @@ class RankingModulelTrainer(ModuleTrainer):
                         verbose=1):
         self.model.eval()
         # num_inputs, num_targets = _parse_num_in(data)
-        batch_size = 8
+        batch_size = 256
         len_inputs = len(data)
         num_batches = int(math.ceil(len_inputs / batch_size))
 

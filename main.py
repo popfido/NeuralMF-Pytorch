@@ -10,15 +10,23 @@ from __future__ import absolute_import
 import sys
 
 from data_loaders.cf_dl import CFDataLoader
-from models.NeuralMF import NeuMF
-from models.ModuleUtils import RankingModulelTrainer, BCE_with_logits_loss
+from models import NeuralMF, MultiLayerPerceptron, GeneralizedMatrixFactorization
+from models.ModuleUtils import RankingModulelTrainer
 from configs.NeuralMFConfig import NeuralMFConfig
 from torchsample.modules import ModuleTrainer
 from torchsample.callbacks import EarlyStopping, ReduceLROnPlateau
 from torchsample.regularizers import L1Regularizer, L2Regularizer
 from torchsample.constraints import UnitNorm
 from torchsample.initializers import XavierUniform
-from models.ModuleUtils import HitAndNDCGAccuracy, HitAccuracy, NDCGAccuracy
+from models.ModuleUtils import HitAccuracy, NDCGAccuracy
+
+models = ['NeuralMF', 'MultiLayerPerceptron', 'GeneralMatrixFactorization']
+
+
+def implicit_load_model(model_name):
+    if model_name not in models:
+        raise AttributeError('No such model')
+    return globals()[model_name]
 
 
 def train(kwargs):
@@ -49,7 +57,7 @@ def train(kwargs):
 
     print('[INFO] Build Networks...')
     nb_users, nb_items = dl.get_num_user_and_item()
-    model = NeuMF(config, nb_users, nb_items)
+    model = implicit_model(config.model)(config, nb_users, nb_items)
     print(model)
     callbacks = [EarlyStopping(patience=10),
                  ReduceLROnPlateau(factor=0.5, patience=5)]

@@ -4,3 +4,8 @@
 Created by H. L. Wang on 2018/5/15
 
 """
+
+from __future__ import absolute_import
+from .NeuralMF import NeuralMF
+from .MultiLayerPerceptron import MultiLayerPerceptron
+from .GeneralizedMatrixFactorization import GeneralizedMatrixFactorization

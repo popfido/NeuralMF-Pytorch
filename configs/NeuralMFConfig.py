@@ -21,6 +21,8 @@ class NeuralMFConfig(BaseConfig):
                                             " Filtering model")
         parser.add_argument('data', type=str,
                             help='path to directory of test and training data files')
+        parser.add_argument('-m', '--model', type=str, default='NeuralMF',
+                            help='The model used to train or test')
         parser.add_argument('-e', '--epochs', type=int, default=20,
                             help='number of epochs for training')
         parser.add_argument('-b', '--batch-size', type=int, default=256,

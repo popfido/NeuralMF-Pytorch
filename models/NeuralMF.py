@@ -5,15 +5,15 @@ Created by H. L. Wang on 2018/5/15
 
 """
 
-import numpy as np
 import torch
 from bases.BaseModule import BaseModule
+from models.ModuleUtils import golorot_uniform, lecunn_uniform
 import torch.nn as nn
 
 
-class NeuMF(BaseModule):
+class NeuralMF(BaseModule):
     def __init__(self, config, nb_users, nb_items):
-        super(NeuMF, self).__init__(config)
+        super(NeuralMF, self).__init__(config)
         nb_mlp_layers = len(config.layers)
         # TODO: regularization?
         self.mf_user_embed = nn.Embedding(nb_users, config.factors)
@@ -23,7 +23,7 @@ class NeuMF(BaseModule):
 
         self.mlp = nn.ModuleList()
         for i in range(1, nb_mlp_layers):
-            self.mlp.extend([nn.Linear(config.layers[i - 1], config.layers[i])])  # noqa: E501
+            self.mlp.extend([nn.Linear(config.layers[i - 1], config.layers[i])])
 
         self.fc_final = nn.Linear(config.layers[-1] + config.factors, 1)
 
@@ -31,16 +31,6 @@ class NeuMF(BaseModule):
         self.mf_item_embed.weight.data.normal_(0., 0.01)
         self.mlp_user_embed.weight.data.normal_(0., 0.01)
         self.mlp_item_embed.weight.data.normal_(0., 0.01)
-
-        def golorot_uniform(layer):
-            fan_in, fan_out = layer.in_features, layer.out_features
-            limit = np.sqrt(6. / (fan_in + fan_out))
-            layer.weight.data.uniform_(-limit, limit)
-
-        def lecunn_uniform(layer):
-            fan_in, fan_out = layer.in_features, layer.out_features  # noqa: F841, E501
-            limit = np.sqrt(3. / fan_in)
-            layer.weight.data.uniform_(-limit, limit)
 
         for layer in self.mlp:
             if type(layer) != nn.Linear:
