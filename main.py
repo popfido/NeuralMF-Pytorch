@@ -57,7 +57,7 @@ def train(kwargs):
 
     print('[INFO] Build Networks...')
     nb_users, nb_items = dl.get_num_user_and_item()
-    model = implicit_model(config.model)(config, nb_users, nb_items)
+    model = implicit_load_model(config.model)(config, nb_users, nb_items)
     print(model)
     callbacks = [EarlyStopping(patience=10),
                  ReduceLROnPlateau(factor=0.5, patience=5)]
