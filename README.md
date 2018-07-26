@@ -64,7 +64,9 @@ python main.py -help
 ├── main.py                             - Main Class
 ├── models                              - Module Directory
 │   ├── __init__.py
-│   ├── NeuralMF.py                     - Neural Collaborate Filtering Module
+│   ├── NeuralMF.py                     - Neural Collaborate Matrix Factorization Module
+│   ├── MultilayerPerceptron.py         - Multi-Layer Perceptron Module
+│   ├── GeneralizedMF.py                - Generalized Matrix Factorization Module
 │   └── ModuleUtils.py                  - Utils Module for other Module
 ├── requirements.txt                    - Dependencies
 └── utils                               - Utils Directory
