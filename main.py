@@ -81,7 +81,7 @@ def train(kwargs):
                     callbacks=callbacks)
     trainer.fit_loader(dl.get_train_data(), dl.get_test_data(), num_epoch=config.epochs,
                        verbose=1)
-    print('[INFO] 训练完成...')
+    print('[INFO] Complete Training...')
 
 
 def help():
