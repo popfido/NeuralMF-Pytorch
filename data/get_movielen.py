@@ -16,6 +16,7 @@ from tqdm import tqdm
 
 _raw_folder = 'raw'
 _processed_folder = 'processed'
+_dataset_list = set(['ml-100k', 'ml-1m', 'ml-10m', 'ml-20m'])
 _file_list = ['train-ratings.csv', 'test-ratings.csv', 'test-negative.csv']
 _raw_file_list = ['movies.dat', 'ratings.dat', 'users.dat']
 _TRAIN_RATINGS_FILENAME = 'train-ratings.csv'
@@ -35,6 +36,8 @@ def parse_args():
                         help='Number of negative samples for each positive test example')
     parser.add_argument('-s', '--seed', type=int, default=0,
                         help='Random seed to reproduce same negative samples')
+    parser.add_argument('-d', '--dataset', type=str, default='ml-1m',
+                        help='The Dataset used to train, currently support {ml-100k, ml-1m, ml-10m, ml-20m}')
     return parser.parse_args()
 
 
@@ -54,12 +57,13 @@ def _check_exists(root, processed_folder, file_list):
     return all([os.path.exists(os.path.join(root, processed_folder, file)) for file in file_list])
 
 
-def download(root):
+def download(root, args):
     """Download the movielen data if it doesn't exist in processed_folder already."""
     from six.moves import urllib
 
-    url = 'http://files.grouplens.org/datasets/movielens/ml-20m.zip' if len(sys.argv) > 3 and sys.argv[2] == '20m' \
-        else 'http://files.grouplens.org/datasets/movielens/ml-1m.zip'
+    assert args.dataset in _dataset_list
+
+    url = 'http://files.grouplens.org/datasets/movielens/' + args.dataset + '.zip'
 
     if _check_exists(root, _processed_folder, _file_list):
         return url.rpartition('/')[2]
