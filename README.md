@@ -61,7 +61,7 @@ python main.py -help
 │   └── neuralMF_config.json            - Json format config file
 ├── data_loaders                        - DataLoader Class Directory
 │   ├── __init__.py
-│   ├── simple_mnist_dl.py
+│   ├── cf_dl.py                        - CF Dataset DataLoader
 ├── main.py                             - Main Class
 ├── models                              - Module Directory
 │   ├── __init__.py
