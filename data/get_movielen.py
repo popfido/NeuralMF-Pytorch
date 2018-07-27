@@ -5,7 +5,6 @@ Created by H. L. Wang on 2018/5/15
 
 """
 import os
-import sys
 import errno
 from collections import namedtuple, defaultdict
 from argparse import ArgumentParser
@@ -49,7 +48,7 @@ def describe_ratings(ratings):
                       max_date=ratings['timestamp'].max())
     print("{ratings} ratings on {items} items from {users} users"
           " from {min_date} to {max_date}"
-            .format(**(info._asdict())))
+          .format(**(info._asdict())))
     return info
 
 
@@ -87,11 +86,6 @@ def download(root, args):
     filename = url.rpartition('/')[2]
     file_path = os.path.join(root, _raw_folder, filename)
 
-    if os.path.exists(file_path):
-        exist_size = os.path.getsize(file_path)
-        if exist_size == file_size:
-            return filename
-
     with open(file_path, "wb") as f:
         for chunk in tqdm(r.iter_content(chunk_size=chunk_size), total=bars, unit="KBytes",
                           desc=filename, leave=True):
@@ -118,7 +112,7 @@ def load_ml_100k(filename, sort=True):
 
 def load_ml_1m(filename, sort=True):
     names = ['user_id', 'item_id', 'rating', 'timestamp']
-    ratings = pd.read_csv(filename+".dat", sep='::', names=names, engine='python')
+    ratings = pd.read_csv(filename + ".dat", sep='::', names=names, engine='python')
     return process_movielens(ratings, sort=sort)
 
 
@@ -129,7 +123,7 @@ def load_ml_10m(filename, sort=True):
 
 
 def load_ml_20m(filename, sort=True):
-    ratings = pd.read_csv(filename+".csv")
+    ratings = pd.read_csv(filename + ".csv")
     ratings['timestamp'] = pd.to_datetime(ratings['timestamp'], unit='s')
     names = {'userId': 'user_id', 'movieId': 'item_id'}
     ratings.rename(columns=names, inplace=True)

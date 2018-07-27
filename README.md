@@ -57,7 +57,8 @@ python main.py -help
 │   ├── BaseConfig.py                   - BaseConfig Class
 │   └── BaseModule.py                   - BaseModule Class
 ├── configs                             - Config Directory
-│   └── neuralMF_config.json
+│   ├── NeuralMFConfig.py               - Config.py file
+│   └── neuralMF_config.json            - Json format config file
 ├── data_loaders                        - DataLoader Class Directory
 │   ├── __init__.py
 │   ├── simple_mnist_dl.py
