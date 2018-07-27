@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 _raw_folder = 'raw'
 _processed_folder = 'processed'
-_dataset_list = set(['ml-100k', 'ml-1m', 'ml-10m', 'ml-20m'])
+_dataset_list = {'ml-100k', 'ml-1m', 'ml-10m', 'ml-20m'}
 _file_list = ['train-ratings.csv', 'test-ratings.csv', 'test-negative.csv']
 _raw_file_list = ['movies.dat', 'ratings.dat', 'users.dat']
 _TRAIN_RATINGS_FILENAME = 'train-ratings.csv'
@@ -59,7 +59,7 @@ def _check_exists(root, processed_folder, file_list):
 
 def download(root, args):
     """Download the movielen data if it doesn't exist in processed_folder already."""
-    from six.moves import urllib
+    import requests
 
     assert args.dataset in _dataset_list
 
@@ -79,11 +79,23 @@ def download(root, args):
             raise
 
     print('Downloading ' + url)
-    data = urllib.request.urlopen(url)
+    r = requests.get(url, stream=True)
+    file_size = int(r.headers["Content-Length"])
+    chunk_size = 1024
+    bars = int(file_size / chunk_size)
+
     filename = url.rpartition('/')[2]
     file_path = os.path.join(root, _raw_folder, filename)
-    with open(file_path, 'wb') as f:
-        f.write(data.read())
+
+    if os.path.exists(file_path):
+        exist_size = os.path.getsize(file_path)
+        if exist_size == file_size:
+            return filename
+
+    with open(file_path, "wb") as f:
+        for chunk in tqdm(r.iter_content(chunk_size=chunk_size), total=bars, unit="KBytes",
+                          desc=filename, leave=True):
+            f.write(chunk)
     with zipfile.ZipFile(file_path, "r") as zip_ref:
         zip_ref.extractall(os.path.join(root, _raw_folder))
     os.unlink(file_path)
@@ -212,6 +224,6 @@ def save(all_ratings, test_ratings, test_negs):
 if __name__ == "__main__":
     args = parse_args()
     np.random.seed(args.seed)
-    fn = download(args.root).replace(".zip", "")
+    fn = download(args.root, args).replace(".zip", "")
     all_ratings, test_ratings, test_negs = convert(fn)
     save(all_ratings, test_ratings, test_negs)
