@@ -6,6 +6,8 @@ Created by H. L. Wang on 2018/5/15
 """
 
 import torch as t
+import os
+from utils.utils import mkdir_if_not_exist
 from torch.nn import functional as F
 from torch.nn import Parameter
 import time
@@ -37,11 +39,15 @@ class BaseModule(t.nn.Module):
 
     def save(self, name=None):
         """
-        save model, to file "checkpoints/model_name + _ + time" by default
+        save model, to file "experiments/model_name/checkpoints/ + time" by default
         """
         if name is None:
-            prefix = 'checkpoints/' + self.model_name + '_'
-            name = time.strftime(prefix + '%m%d_%H:%M:%S.pth')
+            time_str = time.strftime('%m%d_%H:%M:%S.pth')
+            if mkdir_if_not_exist([os.path.join(self.config.logdir, self.model_name, 'checkpoints')]):
+                name = os.path.join(self.config.logdir, self.model_name, 'checkpoints', time_str)
+            else:
+                raise SystemError('[ERROR] Cannot make checkpoint directory due to access deny or other issues')
+
         t.save(self.state_dict(), name)
         return name
 

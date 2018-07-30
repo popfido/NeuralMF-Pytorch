@@ -14,6 +14,7 @@ import torch.nn as nn
 class NeuralMF(BaseModule):
     def __init__(self, config, nb_users, nb_items):
         super(NeuralMF, self).__init__(config)
+        self.model_name = "NeuralMF"
         nb_mlp_layers = len(config.layers)
         # TODO: regularization?
         self.mf_user_embed = nn.Embedding(nb_users, config.factors)

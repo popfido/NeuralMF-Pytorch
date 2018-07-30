@@ -14,6 +14,7 @@ import torch.nn as nn
 class GeneralizedMatrixFactorization(BaseModule):
     def __init__(self, config, nb_users, nb_items):
         super(GeneralizedMatrixFactorization, self).__init__(config)
+        self.model_name = "GeneralizedMF"
         self.user_embed = nn.Embedding(nb_users, config.factors)
         self.item_embed = nn.Embedding(nb_items, config.factors)
 

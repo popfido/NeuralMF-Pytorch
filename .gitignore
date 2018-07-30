@@ -107,3 +107,4 @@ ENV/
 experiments/
 data/raw/
 data/processed/
+checkpoints/

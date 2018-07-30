@@ -82,6 +82,8 @@ def train(kwargs):
     trainer.fit_loader(dl.get_train_data(), dl.get_test_data(), num_epoch=config.epochs,
                        verbose=1)
     print('[INFO] Complete Training...')
+    model.save()
+    print('[INFO] Saved Model into checkpoint directory')
 
 
 def help():

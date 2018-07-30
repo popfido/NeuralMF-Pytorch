@@ -14,6 +14,7 @@ import torch.nn as nn
 class MultiLayerPerceptron(BaseModule):
     def __init__(self, config, nb_users, nb_items):
         super(MultiLayerPerceptron, self).__init__(config)
+        self.model_name = "MultiLayerPerceptron"
         nb_mlp_layers = len(config.layers)
         self.user_embed = nn.Embedding(nb_users, config.layers[0] // 2)
         self.item_embed = nn.Embedding(nb_items, config.layers[0] // 2)

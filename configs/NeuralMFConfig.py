@@ -21,6 +21,8 @@ class NeuralMFConfig(BaseConfig):
                                             " Filtering model")
         parser.add_argument('data', type=str,
                             help='path to directory of test and training data files')
+        parser.add_argument('-ld', '--logdir', type=str, default='experiments',
+                            help='path to the default general log directory of model/experiment')
         parser.add_argument('-m', '--model', type=str, default='NeuralMF',
                             help='The model used to train or test')
         parser.add_argument('-e', '--epochs', type=int, default=20,
