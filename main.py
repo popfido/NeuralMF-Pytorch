@@ -7,7 +7,7 @@ Created by H. L. Wang on 2018/5/15
 
 from __future__ import print_function
 from __future__ import absolute_import
-import sys
+import sys, time
 
 from data_loaders.cf_dl import CFDataLoader
 from models import NeuralMF, MultiLayerPerceptron, GeneralizedMatrixFactorization
@@ -43,13 +43,22 @@ def train(kwargs):
     try:
         parser = NeuralMFConfig()
         # print(kwargs)
+        if '-c' in kwargs:
+            args = list(enumerate(kwargs))
+            for id, arg in args:
+                if '-c' == arg and len(args) >= id+2:
+                    config = parser.get_args_from_json(args[id+1][1])
+                    break
+                else:
+                    raise AssertionError("Corresponding config arg not found")
+        else:
         config = parser.parse_args(kwargs)
-        # parser.save()
     except Exception as e:
         print('[Exception] Unavailable Settings, %s' % e)
         if parser:
-            help()
-        print('[Exception] Please refer formatting: python main.py -c configs/simple_mnist_config.json')
+            help(kwargs)
+        if '-c' in kwargs:
+            print('[Exception] Please refer formatting: python main.py -c configs/neuralMF_config.json')
         exit(0)
 
     print('[INFO] Loading Data...')
@@ -57,6 +66,8 @@ def train(kwargs):
 
     print('[INFO] Build Networks...')
     nb_users, nb_items = dl.get_num_user_and_item()
+    parser.args.nb_users = nb_users
+    parser.args.nb_items = nb_items
     model = implicit_load_model(config.model)(config, nb_users, nb_items)
     print(model)
     callbacks = [EarlyStopping(patience=10),
@@ -68,6 +79,7 @@ def train(kwargs):
                NDCGAccuracy(config.topk)]
 
     print('[INFO] Begin Training...')
+    time_str = time.strftime('%m%d_%H:%M:%S.pth')
 
     trainer = RankingModulelTrainer(
         model=model
@@ -82,7 +94,8 @@ def train(kwargs):
     trainer.fit_loader(dl.get_train_data(), dl.get_test_data(), num_epoch=config.epochs,
                        verbose=1)
     print('[INFO] Complete Training...')
-    model.save()
+    model.save(time_str=time_str)
+    parser.save(timestamp=time_str)
     print('[INFO] Saved Model into checkpoint directory')
 
 

@@ -8,10 +8,12 @@ Created by H. L. Wang on 2018/5/15
 from argparse import ArgumentParser, HelpFormatter
 import os as _os
 import sys as _sys
-import datetime
+import datetime, time
+
+from bunch import Bunch
 
 from bases.BaseConfig import BaseConfig
-from utils.configUtils import save_config
+from utils.configUtils import save_config, get_config_from_json
 from utils.utils import mkdir_if_not_exist
 
 
@@ -55,6 +57,11 @@ class NeuralMFConfig(BaseConfig):
         self.args = self.parser.parse_args(args)
         return self.args
 
+    def get_args_from_json(self, filename):
+        config, config_dict = get_config_from_json(filename)
+        self.args = config
+        return self.args
+
     def print_args(self):
         formatter = self._get_formatter()
         # positionals, optionals and user-defined groups
@@ -73,13 +80,16 @@ class NeuralMFConfig(BaseConfig):
     def _get_formatter(self):
         return self.formatter_class(prog=self.prog)
 
-    def save(self):
+    def save(self, timestamp=time.strftime('%m%d_%H:%M:%S.pth')):
         if self.args is None:
             raise ValueError("Did not parse any arg")
-        config = {k: v for k, v in self.args.__dict__.items()}
-        config['timestamp'] = "{:.0f}".format(datetime.utcnow().timestamp())
-        config['local_timestamp'] = str(datetime.now())
-        run_dir = "./run/neumf/{}".format(config['timestamp'])
+        if isinstance(self.args, Bunch):
+            config = {k: self.args[k] for k in self.args}
+        else:
+            config = {k: v for k, v in self.args.__dict__.items()}
+        # config['timestamp'] = "{:.0f}".format(datetime.now())
+        # config['local_timestamp'] = str(datetime.now())
+        run_dir = _os.path.join(self.args.logdir, self.args.model, "checkpoints")
         print("Saving config and results to {}".format(run_dir))
-        mkdir_if_not_exist(run_dir)
-        save_config(config, run_dir)
+        mkdir_if_not_exist([run_dir])
+        save_config(config, run_dir, timestamp)

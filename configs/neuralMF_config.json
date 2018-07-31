@@ -1,12 +1,13 @@
 {
-  "exp_name": "Neural Matrix Factorization",
-  "data":,
-  "factors":,
-  "layers": ,
+  "model": "NeuralMF",
+  "data": "data/processed",
+  "logdir": "experiment",
+  "factors": 10,
+  "layers": [64, 32, 16, 8],
   "embed_size": 200,
-  "vocab_size": 3000,
-  "hidden_units": 300,
-  "num_epochs": 100,
-  "classes": 2,
+  "negative_samples": 4,
+  "batch_size": 4096,
+  "epochs": 1,
+  "topk":10,
   "use_gpu": 0
 }

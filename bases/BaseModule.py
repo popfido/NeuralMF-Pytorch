@@ -37,12 +37,11 @@ class BaseModule(t.nn.Module):
         """
         self.load_state_dict(t.load(path))
 
-    def save(self, name=None):
+    def save(self, name=None, time_str=time.strftime('%m%d_%H:%M:%S.pth')):
         """
         save model, to file "experiments/model_name/checkpoints/ + time" by default
         """
         if name is None:
-            time_str = time.strftime('%m%d_%H:%M:%S.pth')
             if mkdir_if_not_exist([os.path.join(self.config.logdir, self.model_name, 'checkpoints')]):
                 name = os.path.join(self.config.logdir, self.model_name, 'checkpoints', time_str)
             else:

@@ -28,9 +28,9 @@ def _get_current_time():
 def mkdir_if_not_exist(dirs, is_delete=False):
     """
     创建文件夹
-    :param dirs: 文件夹列表
-    :param is_delete: 是否删除
-    :return: 是否成功
+    :param dirs: list of directory to checkout
+    :param is_delete: whether delete old directory if it exists
+    :return: Boolean that indicate successful or not
     """
     try:
         for dir_ in dirs:

@@ -44,8 +44,8 @@ def process_config(json_file):
     return config
 
 
-def save_config(config, run_dir):
-    path = os.path.join(run_dir, "config_{}.json".format(config['timestamp']))
+def save_config(config, run_dir, timestamp):
+    path = os.path.join(run_dir, "config_{}.json".format(timestamp))
     with open(path, 'w') as config_file:
         json.dump(config, config_file)
         config_file.write('\n')
