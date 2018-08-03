@@ -161,7 +161,7 @@ def help(kwargs):
 
 if __name__ == '__main__':
     if len(_sys.argv) < 2 or _sys.argv[1] not in ['train', 'test', 'help']:
-        help()
+        help(_sys.argv)
         exit(1)
     func = globals()[_sys.argv[1]]
     func(_sys.argv[2:])

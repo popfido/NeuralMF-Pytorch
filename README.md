@@ -46,7 +46,7 @@ maintainer has been out of maintain for half an year.
 python data/get_movielen.py
 
 # See help for main script usage
-python main.py -help
+python main.py help
 ```
 
 ### Directory Structure
