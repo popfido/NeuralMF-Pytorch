@@ -103,7 +103,6 @@ def train(kwargs):
 
 
 def test(kwargs):
-    # TODO: Finish Test Process
     try:
         if len(kwargs) < 3:
             raise LookupError("cannot find config file path or test user item pair file path")
@@ -136,6 +135,7 @@ def test(kwargs):
     predict = trainer.predict(dl.get_test_data(), 1, config.use_gpu)
 
     write_output(dl.get_test_data(), predict, kwargs[2])
+    print("[INFO] Successfully write predict results to {}".format(kwargs[2]))
 
 
 def help(kwargs):
@@ -147,10 +147,12 @@ def help(kwargs):
         '''
         Usage : python main.py <function> [--args=value]
         <function> := train | test | help
-        Noted: all config parameter is useless when test except data and --model
+        Noted: All config parameter is useless when test except data and --model
+               The test func assume that model ckp and model config are in the same directory
+               with the same time label
         example: 
             python main.py train path/to/dataset/root/ --lr=0.01
-            python main.py test path/to/saved_config_file
+            python main.py test path/to/saved/config path/to/test/user/item_pair output/file/path
             python main.py help
         avaiable args for train:
         '''.format(__file__))
