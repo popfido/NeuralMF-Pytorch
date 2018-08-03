@@ -17,6 +17,7 @@ import numpy as np
 import functools
 import math
 import heapq
+from tqdm import tqdm
 
 
 class Flatten(th.nn.Module):
@@ -79,6 +80,37 @@ class TwoInputSingleTargetHelper(BaseHelper):
     def get_partial_loss_fn(self, loss_fn):
         return functools.partial(self.calculate_loss, loss_fn=loss_fn)
 
+class TwoInputNoTargetHelper(BaseHelper):
+
+    def move_to_cuda(self, cuda_device, user, item, targets):
+        user = user.cuda(cuda_device)
+        item = item.cuda(cuda_device)
+        return user, item, targets
+
+    def shuffle_arrays(self, inputs, targets):
+        rand_indices = th.randperm(len(inputs))
+        inputs = [input_[rand_indices] for input_ in inputs]
+        return inputs, targets
+
+    def grab_batch(self, batch_idx, batch_size, inputs, targets):
+        input_batch = list(map(lambda x: th.tensor([x]), inputs[batch_idx]))
+        return input_batch[0], input_batch[1], targets
+
+    def apply_transforms(self, tforms, input_batch, target_batch):
+        input_batch = [tforms[0](input_) for input_ in input_batch]
+        return input_batch, None
+
+    def forward_pass(self, user, item, model):
+        return model(user, item, sigmoid=True)
+
+    def get_partial_forward_fn(self, model):
+        return functools.partial(self.forward_pass, model=model)
+
+    def calculate_loss(self, output_batch, target_batch, loss_fn):
+        return loss_fn(output_batch)
+
+    def get_partial_loss_fn(self, loss_fn):
+        return functools.partial(self.calculate_loss, loss_fn=loss_fn)
 
 class MultiInputSingleTargetHelper(BaseHelper):
 
@@ -280,15 +312,44 @@ class RankingModulelTrainer(ModuleTrainer):
                 map_item_score = {item: pred for item, pred in zip(input_batch[1], preds)}
 
                 batches_seen += 1
-                # eval_logs['val_loss'] += np.mean(loss_avg)
 
                 if self._has_metrics:
                     metrics_logs = metric_container(map_item_score, target_batch)
                     eval_logs.update(metrics_logs)
-            #for k, v in eval_logs.items():
-            #    eval_logs[k] = v / (batches_seen * 1.)
         self.model.train()
         return eval_logs
+
+    def predict(self,
+                inputs,
+                batch_size=32,
+                cuda_device=-1,
+                verbose=1):
+        self.model.eval()
+        # --------------------------------------------------------
+        num_inputs = 1
+        len_inputs = len(inputs)
+        num_batches = int(math.ceil(len_inputs / batch_size))
+        # --------------------------------------------------------
+        predict_helper = TwoInputNoTargetHelper()
+        pred_forward_fn = predict_helper.get_partial_forward_fn(self.model)
+
+        prediction_lists = [[]]
+        len_outputs = 1
+        with th.no_grad():
+            for batch_idx in range(num_batches):
+                user, item, _ = predict_helper.grab_batch(batch_idx, batch_size, inputs, None)
+                if cuda_device >= 0:
+                    inputs = predict_helper.move_to_cuda(cuda_device, user, item)
+                output_batch = pred_forward_fn(user, item)
+
+                if len_outputs == 1:
+                    prediction_lists[0].append(output_batch)
+                else:
+                    for out_idx in range(len_outputs):
+                        prediction_lists[out_idx].append(output_batch[out_idx])
+        final_pred_list = [th.cat(pred_list, 0) for pred_list in prediction_lists]
+        self.model.train(mode=True)
+        return final_pred_list if len_outputs > 1 else final_pred_list[0]
 
 
 def BCE_with_logits_loss(input, target, weight=None, size_average=True, reduce=True):

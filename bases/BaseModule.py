@@ -37,7 +37,7 @@ class BaseModule(t.nn.Module):
         """
         self.load_state_dict(t.load(path))
 
-    def save(self, name=None, time_str=time.strftime('%m%d_%H:%M:%S.pth')):
+    def save(self, name=None, time_str=time.strftime('%m%d_%H:%M:%S')):
         """
         save model, to file "experiments/model_name/checkpoints/ + time" by default
         """
@@ -47,7 +47,7 @@ class BaseModule(t.nn.Module):
             else:
                 raise SystemError('[ERROR] Cannot make checkpoint directory due to access deny or other issues')
 
-        t.save(self.state_dict(), name)
+        t.save(self.state_dict(), name + ".ckp")
         return name
 
 

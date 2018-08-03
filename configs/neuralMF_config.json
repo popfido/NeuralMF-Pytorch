@@ -1,7 +1,7 @@
 {
   "model": "NeuralMF",
   "data": "data/processed",
-  "logdir": "experiment",
+  "logdir": "experiments",
   "factors": 10,
   "layers": [64, 32, 16, 8],
   "embed_size": 200,
@@ -9,5 +9,5 @@
   "batch_size": 4096,
   "epochs": 1,
   "topk":10,
-  "use_gpu": 0
+  "use_gpu": -1
 }

@@ -12,6 +12,8 @@ import os
 import shutil
 import datetime
 import warnings
+import codecs
+import numpy as np
 import json
 
 try:
@@ -34,15 +36,25 @@ def mkdir_if_not_exist(dirs, is_delete=False):
     """
     try:
         for dir_ in dirs:
-            if is_delete:
-                if os.path.exists(dir_):
-                    shutil.rmtree(dir_)
-                    print(u'[INFO] directory "%s" has already been exist, delete it.' % dir_)
+            if dir != '':
+                if is_delete:
+                    if os.path.exists(dir_):
+                        shutil.rmtree(dir_)
+                        print(u'[INFO] directory "%s" has already been exist, delete it.' % dir_)
 
-            if not os.path.exists(dir_):
-                os.makedirs(dir_)
-                print(u'[INFO] directory "%s" do not exist, make a new directory.' % dir_)
+                if not os.path.exists(dir_):
+                    os.makedirs(dir_)
+                    print(u'[INFO] directory "%s" do not exist, make a new directory.' % dir_)
         return True
     except Exception as e:
         print('[Exception] %s' % e)
         return False
+
+
+def write_output(test_dl, predict, file):
+    mkdir_if_not_exist([os.path.dirname(file)])
+
+    with codecs.open(file, 'w') as f:
+        for idx, (user, item) in enumerate(test_dl):
+            f.write(','.join(map(str, [user, item, np.array(predict[idx])[0]])) + '\n')
+    return True

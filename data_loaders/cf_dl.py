@@ -18,13 +18,15 @@ from data.get_movielen import (_TEST_NEG_FILENAME, _TEST_RATINGS_FILENAME,
 
 
 class CFDataLoader(BaseDataLoader):
-    def __init__(self, config=None, only_test=False):
+    def __init__(self, config=None, only_test=False, test_file=None):
         super(CFDataLoader, self).__init__(config)
         self.train_data = None
         if not only_test:
             self.train_data = CFDataset(os.path.join(config.data, _TRAIN_RATINGS_FILENAME), config.negative_samples)
-        self.test_data = CFValidDataSet(os.path.join(config.data, _TEST_RATINGS_FILENAME),
+            self.test_data = CFValidDataSet(os.path.join(config.data, _TEST_RATINGS_FILENAME),
                                         os.path.join(config.data, _TEST_NEG_FILENAME))
+        else:
+            self.test_data = CFTestDataSet(test_file)
 
     def get_train_data(self):
         if not self.train_data:
@@ -33,7 +35,7 @@ class CFDataLoader(BaseDataLoader):
                           num_workers=8, pin_memory=False, )
 
     def get_test_data(self):
-        if not self.train_data:
+        if not self.test_data:
             raise ValueError("Test Dataset Not Set")
         return self.test_data
 
@@ -86,7 +88,7 @@ class CFValidDataSet(torch.utils.data.dataset.Dataset):
     # Container of (rating, items)
     def __init__(self, fname_ratings, fname_negs):
         self.data = [(rating, items) for rating, items in
-                     zip(_load_test_ratings(fname_ratings), _load_test_negs(fname_negs))]
+                     zip(_load_valid_ratings(fname_ratings), _load_valid_negs(fname_negs))]
 
     def __len__(self):
         return len(self.data)
@@ -97,7 +99,27 @@ class CFValidDataSet(torch.utils.data.dataset.Dataset):
                self.data[idx][0][1]
 
 
-def _load_test_ratings(fname):
+class CFTestDataSet(torch.utils.data.dataset.Dataset):
+    def __init__(self, fname):
+        self.data = [(rating, items) for rating, items in
+                     _load_test_pairs(fname)]
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return self.data[idx][0], self.data[idx][1]
+
+
+def _load_test_pairs(fname):
+    def process_line(line):
+        tmp = map(int, line.strip().split('\t')[0:2])
+        return list(tmp)
+
+    pairs = map(process_line, open(fname, 'r'))
+    return list(pairs)
+
+def _load_valid_ratings(fname):
     def process_line(line):
         tmp = map(int, line.split('\t')[0:2])
         return list(tmp)
@@ -106,7 +128,7 @@ def _load_test_ratings(fname):
     return list(ratings)
 
 
-def _load_test_negs(fname):
+def _load_valid_negs(fname):
     def process_line(line):
         tmp = map(int, line.split('\t'))
         return list(tmp)

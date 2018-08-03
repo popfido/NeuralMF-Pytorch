@@ -80,7 +80,7 @@ class NeuralMFConfig(BaseConfig):
     def _get_formatter(self):
         return self.formatter_class(prog=self.prog)
 
-    def save(self, timestamp=time.strftime('%m%d_%H:%M:%S.pth')):
+    def save(self, timestamp=time.strftime('%m%d_%H:%M:%S')):
         if self.args is None:
             raise ValueError("Did not parse any arg")
         if isinstance(self.args, Bunch):
@@ -90,6 +90,6 @@ class NeuralMFConfig(BaseConfig):
         # config['timestamp'] = "{:.0f}".format(datetime.now())
         # config['local_timestamp'] = str(datetime.now())
         run_dir = _os.path.join(self.args.logdir, self.args.model, "checkpoints")
-        print("Saving config and results to {}".format(run_dir))
+        print("[INFO] Saving config and results to {}".format(run_dir))
         mkdir_if_not_exist([run_dir])
         save_config(config, run_dir, timestamp)

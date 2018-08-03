@@ -7,9 +7,12 @@ Created by H. L. Wang on 2018/5/15
 
 from __future__ import print_function
 from __future__ import absolute_import
-import sys, time
+import sys as _sys
+import time as _time
+import os as _os
 
 from data_loaders.cf_dl import CFDataLoader
+from utils.utils import write_output
 from models import NeuralMF, MultiLayerPerceptron, GeneralizedMatrixFactorization
 from models.ModuleUtils import RankingModulelTrainer
 from configs.NeuralMFConfig import NeuralMFConfig
@@ -52,7 +55,7 @@ def train(kwargs):
                 else:
                     raise AssertionError("Corresponding config arg not found")
         else:
-        config = parser.parse_args(kwargs)
+            config = parser.parse_args(kwargs)
     except Exception as e:
         print('[Exception] Unavailable Settings, %s' % e)
         if parser:
@@ -62,7 +65,7 @@ def train(kwargs):
         exit(0)
 
     print('[INFO] Loading Data...')
-    dl = CFDataLoader(config=config)
+    dl = CFDataLoader(config=config, only_test=False)
 
     print('[INFO] Build Networks...')
     nb_users, nb_items = dl.get_num_user_and_item()
@@ -79,7 +82,7 @@ def train(kwargs):
                NDCGAccuracy(config.topk)]
 
     print('[INFO] Begin Training...')
-    time_str = time.strftime('%m%d_%H:%M:%S.pth')
+    time_str = _time.strftime('%m%d_%H:%M:%S')
 
     trainer = RankingModulelTrainer(
         model=model
@@ -99,27 +102,64 @@ def train(kwargs):
     print('[INFO] Saved Model into checkpoint directory')
 
 
-def help():
+def test(kwargs):
+    # TODO: Finish Test Process
+    try:
+        if len(kwargs) < 3:
+            raise LookupError("cannot find config file path or test user item pair file path")
+        parser = NeuralMFConfig()
+        config = parser.get_args_from_json(kwargs[0])
+        # parser.save()
+    except Exception as e:
+        print('[Exception] Unavailable Settings, %s' % e)
+        if parser:
+            help(kwargs)
+        print('[Exception] Please refer formatting: python main.py test [path_to_saved_config] '
+              '[path_to_test_user_item_pair] [output_file_path]')
+        exit(0)
+
+    model = implicit_load_model(config.model)(config, config.nb_users, config.nb_items)
+    config_filename = _os.path.split(kwargs[0])[-1]
+    model_path = _os.path.join(_os.path.dirname(kwargs[0]), config_filename[7:-4] + "ckp")
+    model.load(model_path)
+    print(model)
+    dl = CFDataLoader(test_file=kwargs[1], config=config, only_test=True)
+
+    print("[INFO] Successfully load model and test data")
+
+    trainer = RankingModulelTrainer(
+        model=model
+    )
+
+    trainer.compile(loss="binary_cross_entropy_with_logits",
+                    optimizer='Adam')
+    predict = trainer.predict(dl.get_test_data(), 1, config.use_gpu)
+
+    write_output(dl.get_test_data(), predict, kwargs[2])
+
+
+def help(kwargs):
     """
     print help info： python file.py help
     """
 
     print(
         '''
-        usage : python main.py <function> [--args=value]
+        Usage : python main.py <function> [--args=value]
         <function> := train | test | help
+        Noted: all config parameter is useless when test except data and --model
         example: 
             python main.py train path/to/dataset/root/ --lr=0.01
-            python main.py test path/to/dataset/root/
+            python main.py test path/to/saved_config_file
             python main.py help
-        avaiable args:
+        avaiable args for train:
         '''.format(__file__))
     print(NeuralMFConfig().print_args())
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2 or sys.argv[1] not in ['train', 'test', 'help']:
+    if len(_sys.argv) < 2 or _sys.argv[1] not in ['train', 'test', 'help']:
         help()
         exit(1)
-    func = globals()[sys.argv[1]]
-    func(sys.argv[2:])
+    func = globals()[_sys.argv[1]]
+    func(_sys.argv[2:])
