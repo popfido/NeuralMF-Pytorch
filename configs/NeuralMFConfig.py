@@ -30,7 +30,9 @@ class NeuralMFConfig(BaseConfig):
         parser.add_argument('-e', '--epochs', type=int, default=20,
                             help='number of epochs for training')
         parser.add_argument('-b', '--batch-size', type=int, default=256,
-                            help='number of examples for each iteration')
+                            help='number of samples for each iteration')
+        parser.add_argument('--num-loader', type=int, default=4,
+                            help='number of dataloader process created(4 by default). Must >= 0.')
         parser.add_argument('-f', '--factors', type=int, default=8,
                             help='number of predictive factors')
         parser.add_argument('--layers', nargs='+', type=int,

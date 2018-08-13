@@ -9,5 +9,6 @@
   "batch_size": 4096,
   "epochs": 1,
   "topk":10,
-  "use_gpu": -1
+  "num_loader":4,
+  "no_cuda": -1
 }

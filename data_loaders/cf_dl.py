@@ -32,7 +32,7 @@ class CFDataLoader(BaseDataLoader):
         if not self.train_data:
             raise ValueError("Training Dataset Not Set")
         return DataLoader(self.train_data, batch_size=self.config.batch_size, shuffle=True,
-                          num_workers=8, pin_memory=False, )
+                          num_workers=self.config.num_loader, pin_memory=False)
 
     def get_test_data(self):
         if not self.test_data:
