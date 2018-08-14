@@ -112,6 +112,7 @@ class TwoInputNoTargetHelper(BaseHelper):
     def get_partial_loss_fn(self, loss_fn):
         return functools.partial(self.calculate_loss, loss_fn=loss_fn)
 
+
 class MultiInputSingleTargetHelper(BaseHelper):
 
     def move_to_cuda(self, cuda_device, input_batch, targets):
