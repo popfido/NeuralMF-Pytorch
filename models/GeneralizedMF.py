@@ -25,6 +25,9 @@ class GeneralizedMatrixFactorization(BaseModule):
 
         lecunn_uniform(self.fc_final)
 
+        if config.cuda:
+            self.cuda()
+
     def forward(self, user, item, sigmoid=False):
         xmfu = self.mf_user_embed(user)
         xmfi = self.mf_item_embed(item)

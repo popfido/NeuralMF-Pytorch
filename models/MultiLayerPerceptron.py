@@ -34,6 +34,9 @@ class MultiLayerPerceptron(BaseModule):
             golorot_uniform(layer)
         lecunn_uniform(self.fc_final)
 
+        if config.cuda:
+            self.cuda()
+
     def forward(self, user, item, sigmoid=False):
         xmlpu = self.user_embed(user)
         xmlpi = self.item_embed(item)

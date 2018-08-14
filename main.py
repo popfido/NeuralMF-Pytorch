@@ -11,6 +11,7 @@ import sys as _sys
 import time as _time
 import os as _os
 
+import torch
 from data_loaders.cf_dl import CFDataLoader
 from utils.utils import write_output
 from models import NeuralMF, MultiLayerPerceptron, GeneralizedMatrixFactorization
@@ -64,6 +65,10 @@ def train(kwargs):
             print('[Exception] Please refer formatting: python main.py -c configs/neuralMF_config.json')
         exit(0)
 
+    cuda_device = -1 if not config.cuda else 0
+    if config.cuda:
+        torch.cuda.set_device(0)
+
     print('[INFO] Loading Data...')
     dl = CFDataLoader(config=config, only_test=False)
 
@@ -81,6 +86,7 @@ def train(kwargs):
     metrics = [HitAccuracy(config.topk),
                NDCGAccuracy(config.topk)]
 
+
     print('[INFO] Begin Training...')
     time_str = _time.strftime('%m%d_%H:%M:%S')
 
@@ -95,7 +101,7 @@ def train(kwargs):
                     metrics=metrics,
                     callbacks=callbacks)
     trainer.fit_loader(dl.get_train_data(), dl.get_test_data(), num_epoch=config.epochs,
-                       verbose=1)
+                       verbose=1, cuda_device=cuda_device)
     print('[INFO] Complete Training...')
     model.save(time_str=time_str)
     parser.save(timestamp=time_str)

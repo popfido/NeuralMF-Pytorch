@@ -11,6 +11,7 @@ import sys as _sys
 import datetime, time
 
 from bunch import Bunch
+import torch
 
 from bases.BaseConfig import BaseConfig
 from utils.configUtils import save_config, get_config_from_json
@@ -44,7 +45,7 @@ class NeuralMFConfig(BaseConfig):
                             help='learning rate for optimizer')
         parser.add_argument('-k', '--topk', type=int, default=10,
                             help='rank for test examples to be considered a hit')
-        parser.add_argument('--no-cuda', action='store_true',
+        parser.add_argument('--no-cuda', action='store_true', default=False,
                             help='use available GPUs')
         parser.add_argument('--seed', '-s', type=int,
                             help='manually set random seed for torch')
@@ -57,11 +58,13 @@ class NeuralMFConfig(BaseConfig):
 
     def parse_args(self, args=None):
         self.args = self.parser.parse_args(args)
+        self.args.cuda = not self.args.no_cuda and torch.cuda.is_available()
         return self.args
 
     def get_args_from_json(self, filename):
         config, config_dict = get_config_from_json(filename)
         self.args = config
+        self.args.cuda = not self.args.no_cuda and torch.cuda.is_available()
         return self.args
 
     def print_args(self):
