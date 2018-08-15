@@ -123,6 +123,10 @@ def test(kwargs):
               '[path_to_test_user_item_pair] [output_file_path]')
         exit(0)
 
+    cuda_device = -1 if not config.cuda else 0
+    if config.cuda:
+        torch.cuda.set_device(0)
+
     model = implicit_load_model(config.model)(config, config.nb_users, config.nb_items)
     config_filename = _os.path.split(kwargs[0])[-1]
     model_path = _os.path.join(_os.path.dirname(kwargs[0]), config_filename[7:-4] + "ckp")
@@ -138,7 +142,7 @@ def test(kwargs):
 
     trainer.compile(loss="binary_cross_entropy_with_logits",
                     optimizer='Adam')
-    predict = trainer.predict(dl.get_test_data(), 1, config.use_gpu)
+    predict = trainer.predict(dl.get_test_data(), 1, config.cuda)
 
     write_output(dl.get_test_data(), predict, kwargs[2])
     print("[INFO] Successfully write predict results to {}".format(kwargs[2]))
