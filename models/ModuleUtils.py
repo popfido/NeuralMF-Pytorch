@@ -304,7 +304,7 @@ class RankingModulelTrainer(ModuleTrainer):
                            for i in range(0, len(input_batch[0]), batch_size)]
                 for user, item in batches:
                     if cuda_device >= 0:
-                        user, item = evaluate_helper.move_to_cuda(cuda_device, input_batch, target_batch)
+                        user, item = user.cuda(cuda_device), item.cuda(cuda_device)
 
                     output_batch = eval_forward_fn(user, item).data.cpu().numpy()
 
