@@ -6,6 +6,7 @@ Created by H. L. Wang on 2018/5/15
 """
 
 import torch as t
+import torch.onnx
 import os
 from utils.utils import mkdir_if_not_exist
 from torch.nn import functional as F
@@ -37,17 +38,10 @@ class BaseModule(t.nn.Module):
         """
         self.load_state_dict(t.load(path))
 
-    def save(self, name=None, time_str=time.strftime('%m%d_%H:%M:%S')):
+    def save(self, name=None, time_str=time.strftime('%m%d_%H:%M:%S'), use_onnx=False):
         """
-        save model, to file "experiments/model_name/checkpoints/ + time" by default
+        save model
         """
-        if name is None:
-            if mkdir_if_not_exist([os.path.join(self.config.logdir, self.model_name, 'checkpoints')]):
-                name = os.path.join(self.config.logdir, self.model_name, 'checkpoints', time_str)
-            else:
-                raise SystemError('[ERROR] Cannot make checkpoint directory due to access deny or other issues')
-
-        t.save(self.state_dict(), name + ".ckp")
-        return name
+        raise NotImplementedError
 
 

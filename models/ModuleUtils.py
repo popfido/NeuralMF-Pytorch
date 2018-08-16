@@ -47,29 +47,28 @@ def lecunn_uniform(layer):
 
 class TwoInputSingleTargetHelper(BaseHelper):
 
-    def move_to_cuda(self, cuda_device, user, item, targets):
-        user = user.cuda(cuda_device)
-        item = item.cuda(cuda_device)
+    def move_to_cuda(self, cuda_device, inputs, targets):
+        inputs = (input_.cuda(cuda_device) for input_ in inputs)
         targets = targets.cuda(cuda_device)
-        return user, item, targets
+        return inputs, targets
 
     def shuffle_arrays(self, inputs, targets):
         rand_indices = th.randperm(len(inputs))
-        inputs = [input_[rand_indices] for input_ in inputs]
+        inputs = (input_[rand_indices] for input_ in inputs)
         targets = targets[rand_indices]
         return inputs, targets
 
     def grab_batch_from_loader(self, loader_iter):
-        user, item, label = next(loader_iter)
-        return user, item, label
+        inputs, label = next(loader_iter)
+        return inputs, label
 
     def apply_transforms(self, tforms, input_batch, target_batch):
         input_batch = [tforms[0](input_) for input_ in input_batch]
         target_batch = tforms[1](target_batch)
         return input_batch, target_batch
 
-    def forward_pass(self, user, item, model):
-        return model(user, item)
+    def forward_pass(self, input_data, model):
+        return model(input_data)
 
     def get_partial_forward_fn(self, model):
         return functools.partial(self.forward_pass, model=model)
@@ -80,28 +79,28 @@ class TwoInputSingleTargetHelper(BaseHelper):
     def get_partial_loss_fn(self, loss_fn):
         return functools.partial(self.calculate_loss, loss_fn=loss_fn)
 
+
 class TwoInputNoTargetHelper(BaseHelper):
 
-    def move_to_cuda(self, cuda_device, user, item, targets):
-        user = user.cuda(cuda_device)
-        item = item.cuda(cuda_device)
-        return user, item, targets
+    def move_to_cuda(self, cuda_device, inputs, targets):
+        inputs = (input_.cuda(cuda_device) for input_ in inputs)
+        return inputs, targets
 
     def shuffle_arrays(self, inputs, targets):
         rand_indices = th.randperm(len(inputs))
-        inputs = [input_[rand_indices] for input_ in inputs]
+        inputs = (input_[rand_indices] for input_ in inputs)
         return inputs, targets
 
     def grab_batch(self, batch_idx, batch_size, inputs, targets):
-        input_batch = list(map(lambda x: th.tensor([x]), inputs[batch_idx]))
-        return input_batch[0], input_batch[1], targets
+        input_batch = tuple(map(lambda x: th.tensor([x]), inputs[batch_idx]))
+        return input_batch, targets
 
     def apply_transforms(self, tforms, input_batch, target_batch):
         input_batch = [tforms[0](input_) for input_ in input_batch]
         return input_batch, None
 
-    def forward_pass(self, user, item, model):
-        return model(user, item, sigmoid=True)
+    def forward_pass(self, input_data, model):
+        return model(input_data, sigmoid=True)
 
     def get_partial_forward_fn(self, model):
         return functools.partial(self.forward_pass, model=model)
@@ -138,8 +137,8 @@ class MultiInputSingleTargetHelper(BaseHelper):
         target_batch = tforms[1](target_batch)
         return input_batch, target_batch
 
-    def forward_pass(self, user, item, model, sigmoid):
-        return model(user, item, sigmoid=sigmoid)
+    def forward_pass(self, input_data, model, sigmoid):
+        return model(input_data, sigmoid=sigmoid)
 
     def get_partial_forward_fn(self, model):
         return functools.partial(self.forward_pass, model=model, sigmoid=True)
@@ -231,13 +230,13 @@ class RankingModulelTrainer(ModuleTrainer):
 
                     callback_container.on_batch_begin(batch_idx, batch_logs)
 
-                    user, item, label = fit_helper.grab_batch_from_loader(loader_iter)
+                    input_data, label = fit_helper.grab_batch_from_loader(loader_iter)
                     if cuda_device >= 0:
-                        user, item, label = fit_helper.move_to_cuda(cuda_device, user, item, label)
+                        input_data, label = fit_helper.move_to_cuda(cuda_device, input_data, label)
 
                     # ---------------------------------------------
                     self._optimizer.zero_grad()
-                    output_batch = fit_forward_fn(user, item)
+                    output_batch = fit_forward_fn(input_data)
                     loss = fit_loss_fn(output_batch, label)
                     loss.backward()
                     self._optimizer.step()
@@ -302,11 +301,11 @@ class RankingModulelTrainer(ModuleTrainer):
                 batches = [(th.tensor(input_batch[0][i:i + batch_size]),
                             th.tensor(input_batch[1][i:i + batch_size]))
                            for i in range(0, len(input_batch[0]), batch_size)]
-                for user, item in batches:
+                for input_data in batches:
                     if cuda_device >= 0:
-                        user, item = user.cuda(cuda_device), item.cuda(cuda_device)
+                        input_data = [input_.cuda(cuda_device) for input_ in input_data]
 
-                    output_batch = eval_forward_fn(user, item).data.cpu().numpy()
+                    output_batch = eval_forward_fn(input_data).data.cpu().numpy()
 
                     # loss_avg.append(eval_loss_fn(output_batch, target_batch).item())
                     preds = preds + list(output_batch.flatten())
@@ -338,10 +337,10 @@ class RankingModulelTrainer(ModuleTrainer):
         len_outputs = 1
         with th.no_grad():
             for batch_idx in range(num_batches):
-                user, item, _ = predict_helper.grab_batch(batch_idx, batch_size, inputs, None)
+                input_data, _ = predict_helper.grab_batch(batch_idx, batch_size, inputs, None)
                 if cuda_device >= 0:
-                    inputs = predict_helper.move_to_cuda(cuda_device, user, item)
-                output_batch = pred_forward_fn(user, item)
+                    inputs = predict_helper.move_to_cuda(cuda_device, input_data)
+                output_batch = pred_forward_fn(input_data)
 
                 if len_outputs == 1:
                     prediction_lists[0].append(output_batch)

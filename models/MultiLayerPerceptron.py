@@ -8,8 +8,10 @@ Created by H. L. Wang on 2018/5/15
 import torch
 from bases.BaseModule import BaseModule
 from models.ModuleUtils import golorot_uniform, lecunn_uniform
-import torch.nn as nn
+from utils.utils import _save_model, _save_onnx_model, _generate_model_path
 
+import torch.nn as nn
+import time
 
 class MultiLayerPerceptron(BaseModule):
     def __init__(self, config, nb_users, nb_items):
@@ -37,9 +39,9 @@ class MultiLayerPerceptron(BaseModule):
         if config.cuda:
             self.cuda()
 
-    def forward(self, user, item, sigmoid=False):
-        xmlpu = self.user_embed(user)
-        xmlpi = self.item_embed(item)
+    def forward(self, input_data, sigmoid=False):
+        xmlpu = self.user_embed(input_data[0])
+        xmlpi = self.item_embed(input_data[1])
         xmlp = torch.cat((xmlpu, xmlpi), dim=1)
         for i, layer in enumerate(self.mlp):
             xmlp = layer(xmlp)
@@ -49,3 +51,10 @@ class MultiLayerPerceptron(BaseModule):
         if sigmoid:
             x = nn.functional.sigmoid(x)
         return x
+
+    def save(self, name=None, time_str=time.strftime('%m%d_%H:%M:%S'), use_onnx=False):
+        path = _generate_model_path(self.config.logdir, self.model_name, time_str)
+        if not use_onnx:
+            _save_model(path, self.state_dict())
+        else:
+            _save_onnx_model(path, self, [torch.tensor(1), torch.tensor(1)])

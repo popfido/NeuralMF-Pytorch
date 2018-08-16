@@ -10,5 +10,6 @@
   "epochs": 1,
   "topk":10,
   "num_loader":4,
-  "no_cuda": -1
+  "no_cuda": -1,
+  "onnx": -1
 }

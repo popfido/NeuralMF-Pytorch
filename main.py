@@ -12,16 +12,18 @@ import time as _time
 import os as _os
 
 import torch
-from data_loaders.cf_dl import CFDataLoader
-from utils.utils import write_output
-from models import NeuralMF, MultiLayerPerceptron, GeneralizedMatrixFactorization
-from models.ModuleUtils import RankingModulelTrainer
-from configs.NeuralMFConfig import NeuralMFConfig
+
 from torchsample.modules import ModuleTrainer
 from torchsample.callbacks import EarlyStopping, ReduceLROnPlateau
 from torchsample.regularizers import L1Regularizer, L2Regularizer
 from torchsample.constraints import UnitNorm
 from torchsample.initializers import XavierUniform
+
+from data_loaders.cf_dl import CFDataLoader
+from utils.utils import write_output
+from models import NeuralMF, MultiLayerPerceptron, GeneralizedMatrixFactorization
+from models.ModuleUtils import RankingModulelTrainer
+from configs.NeuralMFConfig import NeuralMFConfig
 from models.ModuleUtils import HitAccuracy, NDCGAccuracy
 
 models = ['NeuralMF', 'MultiLayerPerceptron', 'GeneralMatrixFactorization']
@@ -31,7 +33,6 @@ def implicit_load_model(model_name):
     if model_name not in models:
         raise AttributeError('No such model')
     return globals()[model_name]
-
 
 def train(kwargs):
     """
@@ -103,7 +104,7 @@ def train(kwargs):
     trainer.fit_loader(dl.get_train_data(), dl.get_test_data(), num_epoch=config.epochs,
                        verbose=1, cuda_device=cuda_device)
     print('[INFO] Complete Training...')
-    model.save(time_str=time_str)
+    model.save(time_str=time_str, use_onnx=config.onnx)
     parser.save(timestamp=time_str)
     print('[INFO] Saved Model into checkpoint directory')
 

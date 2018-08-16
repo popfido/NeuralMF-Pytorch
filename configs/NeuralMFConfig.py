@@ -29,28 +29,30 @@ class NeuralMFConfig(BaseConfig):
         parser.add_argument('-m', '--model', type=str, default='NeuralMF',
                             help='The model used to train or test')
         parser.add_argument('-e', '--epochs', type=int, default=20,
-                            help='number of epochs for training')
+                            help='Number of epochs for training, 20 by default')
         parser.add_argument('-b', '--batch-size', type=int, default=256,
-                            help='number of samples for each iteration')
+                            help='Number of samples for each iteration, 256 by default')
         parser.add_argument('--num-loader', type=int, default=4,
-                            help='number of dataloader process created(4 by default). Must >= 0.')
+                            help='Number of dataloader process created(4 by default). Must >= 0.')
         parser.add_argument('-f', '--factors', type=int, default=8,
-                            help='number of predictive factors')
+                            help='Number of predictive factors, 8 by default')
         parser.add_argument('--layers', nargs='+', type=int,
                             default=[64, 32, 16, 8],
-                            help='size of hidden layers for MLP')
+                            help='Size of hidden layers for MLP')
         parser.add_argument('-n', '--negative-samples', type=int, default=4,
-                            help='number of negative examples per interaction')
+                            help='Number of negative examples per interaction, 4 by default')
         parser.add_argument('-l', '--learning-rate', type=float, default=0.001,
-                            help='learning rate for optimizer')
+                            help='Learning rate for optimizer, 0.001 by default')
         parser.add_argument('-k', '--topk', type=int, default=10,
-                            help='rank for test examples to be considered a hit')
+                            help='Rank for test examples to be considered a hit, 10 by default')
         parser.add_argument('--no-cuda', action='store_true', default=False,
-                            help='use available GPUs')
+                            help='Use it if you do not want to use available GPUs')
         parser.add_argument('--seed', '-s', type=int,
                             help='manually set random seed for torch')
         parser.add_argument('--threshold', '-t', type=float,
                             help='stop training early at threshold')
+        parser.add_argument('--onnx', action='store_true', default=False,
+                            help='User it if you wanna save model in onnx format')
         self.parser = parser
         self.args = None
         self.prog = _os.path.basename(_sys.argv[0])

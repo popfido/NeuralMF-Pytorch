@@ -9,11 +9,13 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import os
+import time
 import shutil
 import datetime
 import warnings
 import codecs
 import numpy as np
+import torch as t
 import json
 
 try:
@@ -25,6 +27,25 @@ except:
 
 def _get_current_time():
     return datetime.datetime.now().strftime("%B %d, %Y - %I:%M%p")
+
+
+def _generate_model_path(logdir, model_name, time_str):
+    if mkdir_if_not_exist([os.path.join(logdir, model_name, 'checkpoints')]):
+        name = os.path.join(logdir, model_name, 'checkpoints', time_str)
+    else:
+        raise SystemError('[ERROR] Cannot make checkpoint directory due to access deny or other issues')
+    return name
+
+
+def _save_model(path, state_dict):
+    t.save(state_dict, path + ".pth")
+
+
+def _save_onnx_model(path, model, x):
+    t.onnx._export(model,  # model being run
+                   x,  # model input (or a tuple for multiple inputs)
+                   path + ".onnx",  # where to save the model (can be a file or file-like object)
+                   export_params=True)
 
 
 def mkdir_if_not_exist(dirs, is_delete=False):

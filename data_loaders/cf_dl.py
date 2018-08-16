@@ -74,14 +74,14 @@ class CFDataset(torch.utils.data.dataset.Dataset):
     def __getitem__(self, idx):
         if idx % (self.nb_neg + 1) == 0:
             idx = idx // (self.nb_neg + 1)
-            return self.data[idx][0], self.data[idx][1], np.ones(1, dtype=np.float32)  # noqa: E501
+            return [self.data[idx][0], self.data[idx][1]], np.ones(1, dtype=np.float32)  # noqa: E501
         else:
             idx = idx // (self.nb_neg + 1)
             u = self.data[idx][0]
             j = torch.LongTensor(1).random_(0, self.nb_items).item()
             while (u, j) in self.mat:
                 j = torch.LongTensor(1).random_(0, self.nb_items).item()
-            return u, j, np.zeros(1, dtype=np.float32)
+            return [u, j], np.zeros(1, dtype=np.float32)
 
 
 class CFValidDataSet(torch.utils.data.dataset.Dataset):

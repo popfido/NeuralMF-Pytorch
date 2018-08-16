@@ -8,8 +8,10 @@ Created by H. L. Wang on 2018/5/15
 import torch
 from bases.BaseModule import BaseModule
 from models.ModuleUtils import lecunn_uniform
-import torch.nn as nn
+from utils.utils import _save_model, _save_onnx_model, _generate_model_path
 
+import torch.nn as nn
+import time
 
 class GeneralizedMatrixFactorization(BaseModule):
     def __init__(self, config, nb_users, nb_items):
@@ -28,12 +30,19 @@ class GeneralizedMatrixFactorization(BaseModule):
         if config.cuda:
             self.cuda()
 
-    def forward(self, user, item, sigmoid=False):
-        xmfu = self.mf_user_embed(user)
-        xmfi = self.mf_item_embed(item)
+    def forward(self, input_data, sigmoid=False):
+        xmfu = self.mf_user_embed(input_data[0])
+        xmfi = self.mf_item_embed(input_data[1])
         xmf = xmfu * xmfi
 
         x = self.fc_final(xmf)
         if sigmoid:
             x = nn.functional.sigmoid(x)
         return x
+
+    def save(self, name=None, time_str=time.strftime('%m%d_%H:%M:%S'), use_onnx=False):
+        path = _generate_model_path(self.config.logdir, self.model_name, time_str)
+        if not use_onnx:
+            _save_model(path, self.state_dict())
+        else:
+            _save_onnx_model(path, self, [torch.tensor(1), torch.tensor(1)])
