@@ -68,7 +68,8 @@ def train(kwargs):
 
     cuda_device = -1 if not config.cuda else 0
     if config.cuda:
-        torch.cuda.set_device(0)
+        torch.cuda.set_device(cuda_device)
+        config.cuda_device = cuda_device
 
     print('[INFO] Loading Data...')
     dl = CFDataLoader(config=config, only_test=False)
