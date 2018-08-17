@@ -58,8 +58,8 @@ class MultiLayerPerceptron(BaseModule):
             _save_model(path, self.state_dict())
         else:
             if self.config.cuda:
-                self.cpu()
-            _save_onnx_model(path, self, [torch.tensor([1]),
+                _save_onnx_model(path, self, [torch.tensor([1]).cuda(self.config.cuda_device),
+                                              torch.tensor([1]).cuda(self.config.cuda_device)])
+            else:
+                _save_onnx_model(path, self, [torch.tensor([1]),
                                               torch.tensor([1])])
-            if self.config.cuda:
-                self.gpu()
