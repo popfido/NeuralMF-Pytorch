@@ -68,5 +68,10 @@ class NeuralMF(BaseModule):
         if not use_onnx:
             _save_model(path, self.state_dict())
         else:
-            _save_onnx_model(path, self, [torch.tensor([1]), torch.tensor([1])])
+            if self.config.cuda:
+                self.cpu()
+            _save_onnx_model(path, self, [torch.tensor([1]),
+                                              torch.tensor([1])])
+            if self.config.cuda:
+                self.gpu()
 
