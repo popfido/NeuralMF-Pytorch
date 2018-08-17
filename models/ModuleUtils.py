@@ -48,13 +48,13 @@ def lecunn_uniform(layer):
 class TwoInputSingleTargetHelper(BaseHelper):
 
     def move_to_cuda(self, cuda_device, inputs, targets):
-        inputs = (input_.cuda(cuda_device) for input_ in inputs)
+        inputs = [input_.cuda(cuda_device) for input_ in inputs]
         targets = targets.cuda(cuda_device)
         return inputs, targets
 
     def shuffle_arrays(self, inputs, targets):
         rand_indices = th.randperm(len(inputs))
-        inputs = (input_[rand_indices] for input_ in inputs)
+        inputs = [input_[rand_indices] for input_ in inputs]
         targets = targets[rand_indices]
         return inputs, targets
 
@@ -83,7 +83,7 @@ class TwoInputSingleTargetHelper(BaseHelper):
 class TwoInputNoTargetHelper(BaseHelper):
 
     def move_to_cuda(self, cuda_device, inputs, targets):
-        inputs = (input_.cuda(cuda_device) for input_ in inputs)
+        inputs = [input_.cuda(cuda_device) for input_ in inputs]
         return inputs, targets
 
     def shuffle_arrays(self, inputs, targets):
@@ -92,7 +92,7 @@ class TwoInputNoTargetHelper(BaseHelper):
         return inputs, targets
 
     def grab_batch(self, batch_idx, batch_size, inputs, targets):
-        input_batch = tuple(map(lambda x: th.tensor([x]), inputs[batch_idx]))
+        input_batch = list(map(lambda x: th.tensor([x]), inputs[batch_idx]))
         return input_batch, targets
 
     def apply_transforms(self, tforms, input_batch, target_batch):
